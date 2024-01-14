@@ -1,4 +1,4 @@
-namespace Habot.Core.Board;
+namespace Habot.Core.Chess;
 
 public readonly record struct Move(Square From, Square To)
 {

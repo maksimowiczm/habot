@@ -1,4 +1,4 @@
-using Habot.Core.Board;
+using Habot.Core.Chess;
 
 namespace Habot.UCI;
 

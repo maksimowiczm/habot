@@ -1,8 +1,8 @@
-using Habot.Core.Board;
+using Habot.Core.Chess;
 
 namespace Habot.UCI.Request;
 
 public readonly record struct PositionFromFen(
-    string Fen,
+    Fen Fen,
     IEnumerable<Move> Moves
 ) : IUciRequestWithMoves;
