@@ -1,6 +1,6 @@
 using Habot.Core.Chess;
 
-namespace Habot.Core.Perft;
+namespace Habot.Perft;
 
 /// <summary>
 /// Represents result of <see cref="IPerftBoard"/> preft method.

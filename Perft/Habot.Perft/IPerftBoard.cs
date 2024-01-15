@@ -1,4 +1,4 @@
-namespace Habot.Core.Perft;
+namespace Habot.Perft;
 
 /// <summary>
 /// Represents chess board that has a perft methods.
