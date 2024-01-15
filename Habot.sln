@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Habot.Perft", "Perft\Habot.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Habot.Perft.Tests", "Perft\Habot.Perft.Tests\Habot.Perft.Tests.csproj", "{470D8B3B-46F6-4ACD-8498-A759A14DFDBB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Habot.Runner", "Habot.Runner\Habot.Runner.csproj", "{5696C6F5-D6B1-4EE3-B1E8-6CF14BC4CAB9}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{B57F5D5B-99CE-4D87-9326-53FB9035A5DA}"
 EndProject
 Global
