@@ -1,4 +1,5 @@
 using System.Runtime.Serialization;
+using System.Text;
 using Habot.Core.Board;
 using Habot.Core.Chess;
 using Habot.Core.Mailbox;
@@ -77,5 +78,31 @@ public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICrea
     public IEnumerable<Move> GetLegalMoves(Color color)
     {
         throw new NotImplementedException();
+    }
+
+    public override string ToString()
+    {
+        var builder = new StringBuilder();
+
+        for (var i = 7; i >= 0; i--)
+        {
+            for (var j = 0; j < 8; j++)
+            {
+                var square = new Square((byte)i, (byte)j);
+                var piece = _pieces[square.Value];
+                if (piece is not null)
+                {
+                    builder.Append(piece.ToString());
+                }
+                else
+                {
+                    builder.Append('.');
+                }
+            }
+
+            builder.Append('\n');
+        }
+
+        return builder.ToString();
     }
 }

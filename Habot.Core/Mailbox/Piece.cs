@@ -2,24 +2,21 @@ using Habot.Core.Chess;
 
 namespace Habot.Core.Mailbox;
 
-public readonly record struct Piece
+public readonly record struct Piece(PieceType Type, Color Color)
 {
-    public PieceType Type { get; private init; }
-    public Color Color { get; private init; }
-
-    public Piece(PieceType type, Color color)
+    public override string ToString()
     {
-        Type = type;
-        Color = color;
-    }
+        var notation = Type switch
+        {
+            PieceType.King => "k",
+            PieceType.Queen => "q",
+            PieceType.Rook => "r",
+            PieceType.Bishop => "b",
+            PieceType.Knight => "n",
+            PieceType.Pawn => "p",
+            _ => throw new Exception("This is why does .NET enforce default branch for enums")
+        };
 
-    public enum PieceType
-    {
-        King,
-        Queen,
-        Rook,
-        Bishop,
-        Knight,
-        Pawn
+        return Color == Color.White ? notation.ToUpper() : notation;
     }
 }

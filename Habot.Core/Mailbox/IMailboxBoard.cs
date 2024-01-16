@@ -1,7 +1,7 @@
 using Habot.Core.Chess;
 using Shared;
 using static Habot.Core.Chess.Color;
-using static Habot.Core.Mailbox.Piece.PieceType;
+using static Habot.Core.Mailbox.PieceType;
 
 namespace Habot.Core.Mailbox;
 
