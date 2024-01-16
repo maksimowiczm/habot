@@ -7,7 +7,7 @@ using Shared;
 
 namespace Habot.Engine;
 
-public class Board : IMailboxBoard, IBoard, IPerftBoard, ISmartBoard, ICreatableBoard<Board>
+public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICreatableBoard<Board>
 {
     private string _castleRights = "KQkq";
     private Color _colorToMove = Color.White;
@@ -65,11 +65,6 @@ public class Board : IMailboxBoard, IBoard, IPerftBoard, ISmartBoard, ICreatable
     }
 
     public void Move(Move move)
-    {
-        throw new NotImplementedException();
-    }
-
-    public IEnumerable<PerftWithMove> Perft(uint depth)
     {
         throw new NotImplementedException();
     }

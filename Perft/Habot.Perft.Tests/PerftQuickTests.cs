@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace Habot.Perft.Tests;
 
 public abstract class PerftQuickTests<TBoard>
-    where TBoard : IPerftBoard, IBoard, ICreatableBoard<TBoard>
+    where TBoard : IPerftQuickBoard, IBoard, ICreatableBoard<TBoard>
 {
     [TestCaseSource(typeof(PerftTestsData), nameof(PerftTestsData.StartingPosition))]
     [TestCaseSource(typeof(PerftTestsData), nameof(PerftTestsData.Position2))]
