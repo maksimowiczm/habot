@@ -17,13 +17,19 @@ public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICrea
 
     private Board()
     {
-        foreach (var (key, value) in IMailboxBoard.StartingPositionPiecesMap)
-        {
-            _pieces[key] = value;
-        }
     }
 
-    public static Board Create() => new();
+    public static Board Create()
+    {
+        var board = new Board();
+
+        foreach (var (key, value) in IMailboxBoard.StartingPositionPiecesMap)
+        {
+            board._pieces[key] = value;
+        }
+
+        return board;
+    }
 
     public static Board Create(Fen fen)
     {
