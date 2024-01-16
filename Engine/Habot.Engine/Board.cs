@@ -71,9 +71,89 @@ public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICrea
         _colorToMove = fenBoard._colorToMove;
     }
 
+    private bool TryCastle(byte from, byte to, Piece fromPiece)
+    {
+        if (fromPiece.Type != PieceType.King)
+        {
+            return false;
+        }
+
+        var color = fromPiece.Color;
+
+        // move king
+        (_pieces[to], _pieces[from]) = (_pieces[from], _pieces[to]);
+
+        // move rook
+        if (from < to)
+        {
+            var rookPosition = color == Color.White ? 7 : 63;
+            (_pieces[from + 1], _pieces[rookPosition]) = (_pieces[rookPosition], _pieces[from + 1]);
+            return true;
+        }
+        else // else bcs rookPosition var ;/
+        {
+            var rookPosition = color == Color.White ? 0 : 56;
+            (_pieces[from - 1], _pieces[rookPosition]) = (_pieces[rookPosition], _pieces[from - 1]);
+            return true;
+        }
+    }
+
+    private bool TryEnPassant(byte from, byte to, Piece fromPiece)
+    {
+        if (
+            fromPiece.Type != PieceType.Pawn ||
+            _enPassant is null || _enPassant.Value.Value != to
+        )
+        {
+            return false;
+        }
+
+        _pieces[to] = fromPiece;
+        _pieces[from] = null;
+        var diff = fromPiece.Color == Color.White ? -8 : 8;
+        _pieces[_enPassant.Value.Value + diff] = null;
+        return true;
+    }
+
     public void Move(Move move)
     {
-        throw new NotImplementedException();
+        var from = move.From;
+        var to = move.To;
+        var fromPiece = _pieces[from.Value];
+        if (fromPiece is null)
+        {
+            return;
+        }
+
+        if (move.MightBeCastle() && TryCastle(from.Value, to.Value, fromPiece.Value))
+        {
+            return;
+        }
+
+        if (TryEnPassant(from.Value, to.Value, fromPiece.Value))
+        {
+            return;
+        }
+
+        var newPiece = move.Promotion switch
+        {
+            null => fromPiece.Value,
+            var type => new Piece(type.Value.ToPieceType(), fromPiece.Value.Color)
+        };
+
+        _pieces[to.Value] = newPiece;
+        _pieces[from.Value] = null;
+
+        // mark en passant
+        if (fromPiece.Value.Type == PieceType.Pawn && Math.Abs(from.Position.row - to.Position.row) == 2)
+        {
+            var diff = fromPiece.Value.Color == Color.White ? 8 : -8;
+            _enPassant = new Square(from.Value + diff);
+        }
+        else
+        {
+            _enPassant = null;
+        }
     }
 
     public uint PerftQuick(uint depth)

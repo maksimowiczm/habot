@@ -25,4 +25,13 @@ public readonly record struct Move(Square From, Square To, char? Promotion)
     }
 
     public override string ToString() => $"{From}{To}{Promotion}";
+
+    public bool MightBeCastle()
+    {
+        var castlePairs = new List<(byte, byte)> { (4, 2), (4, 6), (60, 58), (60, 62) };
+
+        var thisClone = this;
+        return castlePairs
+            .Any(move => thisClone.From.Value == move.Item1 && thisClone.To.Value == move.Item2);
+    }
 }

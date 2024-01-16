@@ -12,7 +12,17 @@ public readonly record struct Square
         Value = value;
     }
 
+    public Square(int value)
+    {
+        Value = (byte)(value);
+    }
+
     public Square(byte row, byte column)
+    {
+        Value = (byte)(row * 8 + column);
+    }
+
+    public Square(int row, int column)
     {
         Value = (byte)(row * 8 + column);
     }
