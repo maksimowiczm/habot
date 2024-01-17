@@ -4,14 +4,10 @@ using Habot.UCI.Request;
 
 namespace Habot.Engine.Board;
 
-public class Engine : SmartBoard, IEngine, ICreatableBoard<Engine>
+public class Engine : SmartBoard, IEngine
 {
     public Move Search(Go request)
     {
         throw new NotImplementedException();
     }
-
-    public new static Engine Create() => PopulateProperties(new Engine());
-
-    public new static Engine Create(Fen fen) => PopulateProperties(new Engine(), fen);
 }

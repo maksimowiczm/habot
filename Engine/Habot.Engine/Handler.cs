@@ -1,3 +1,4 @@
+using Habot.Engine.Board;
 using Habot.UCI;
 using Habot.UCI.Request;
 
@@ -8,13 +9,13 @@ namespace Habot.Engine;
 /// </summary>
 public class Handler : IUciHandler
 {
-    private Board.Engine _board = Board.Engine.Create();
+    private Board.Engine _board = new BoardBuilder<Board.Engine>().Build();
 
     public IUciResponse HelloMessage() => IUciResponse.Okay("Hello habot");
 
     private IUciResponse HandleNewGame()
     {
-        _board = Board.Engine.Create();
+        _board = new BoardBuilder<Board.Engine>().Build();
         return IUciResponse.Okay();
     }
 
@@ -22,8 +23,8 @@ public class Handler : IUciHandler
     {
         _board = request switch
         {
-            PositionFromFen fromFen => Board.Engine.Create(fromFen.Fen),
-            PositionFromStartPos => Board.Engine.Create(),
+            PositionFromFen fromFen => new BoardBuilder<Board.Engine>().SetFen(fromFen.Fen).Build(),
+            PositionFromStartPos => new BoardBuilder<Board.Engine>().SetStartingPosition().Build(),
             _ => _board
         };
 

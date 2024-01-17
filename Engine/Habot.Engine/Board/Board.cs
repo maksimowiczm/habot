@@ -12,47 +12,20 @@ public class Board : IMailboxBoard, IBoard
     protected string CastleRights = "KQkq";
     public Color ColorToMove { get; private set; } = Color.White;
     protected Square? EnPassant;
-    protected Piece?[] Pieces = new Piece?[64];
+    protected readonly Piece?[] Pieces = new Piece?[64];
 
-    protected Board()
+    private void Clear()
     {
-    }
-
-    protected static T PopulateProperties<T>(T board)
-        where T : Board
-    {
-        foreach (var (key, value) in IMailboxBoard.StartingPositionPiecesMap)
+        foreach (var index in Enumerable.Range(0, 64))
         {
-            board.Pieces[key] = value;
+            Pieces[index] = null;
         }
-
-        return board;
-    }
-
-    protected static T PopulateProperties<T>(T board, Fen fen)
-        where T : Board
-    {
-        foreach (var (row, col, piece) in IMailboxBoard.PiecesFromFen(fen))
-        {
-            var flatSquare = new Square((byte)row, (byte)col).Value;
-            board.Pieces[flatSquare] = piece;
-        }
-
-        var options = fen.Value.SkipWhile(ch => ch != ' ').Skip(1).CollectString().Split(' ').Take(3).ToList();
-        if (options.Count != 3)
-        {
-            throw new SerializationException($"""Cannot parse "{fen}" as fen""");
-        }
-
-        board.ColorToMove = options[0] == "w" ? Color.White : Color.Black;
-        board.CastleRights = options[1];
-        board.EnPassant = options[2] == "-" ? null : Square.Serialize(options[2]);
-
-        return board;
     }
 
     public void SetStartingPosition()
     {
+        Clear();
+
         foreach (var (key, piece) in IMailboxBoard.StartingPositionPiecesMap)
         {
             Pieces[key] = piece;
@@ -61,11 +34,23 @@ public class Board : IMailboxBoard, IBoard
 
     public void SetPosition(Fen fen)
     {
-        var fenBoard = PopulateProperties(new Board(), fen);
-        Pieces = fenBoard.Pieces;
-        EnPassant = fenBoard.EnPassant;
-        CastleRights = fenBoard.CastleRights;
-        ColorToMove = fenBoard.ColorToMove;
+        Clear();
+
+        foreach (var (row, col, piece) in IMailboxBoard.PiecesFromFen(fen))
+        {
+            var flatSquare = new Square((byte)row, (byte)col).Value;
+            Pieces[flatSquare] = piece;
+        }
+
+        var options = fen.Value.SkipWhile(ch => ch != ' ').Skip(1).CollectString().Split(' ').Take(3).ToList();
+        if (options.Count != 3)
+        {
+            throw new SerializationException($"""Cannot parse "{fen}" as fen""");
+        }
+
+        ColorToMove = options[0] == "w" ? Color.White : Color.Black;
+        CastleRights = options[1];
+        EnPassant = options[2] == "-" ? null : Square.Serialize(options[2]);
     }
 
     private bool TryCastle(byte from, byte to, Piece fromPiece)
