@@ -8,7 +8,7 @@ namespace Habot.Runner;
 public class Runner(IUciHandler engine)
 {
     private readonly BufferBlock<IUciRequest> _requestChannel = new();
-    private readonly BufferBlock<UciResponse> _responseChannel = new();
+    private readonly BufferBlock<IUciResponse> _responseChannel = new();
 
     public async Task Run()
     {

@@ -6,9 +6,9 @@ namespace Habot.UCI.Request;
 
 public readonly record struct Position(
     IEnumerable<Move> Moves
-) : IUciRequestWithMoves
+) : IUciPositionRequest
 {
-    public static IUciRequestWithMoves Serialize(string str)
+    public static IUciPositionRequest Serialize(string str)
     {
         var tokens = str.Trim().Split(null);
 

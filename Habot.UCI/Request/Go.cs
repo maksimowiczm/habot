@@ -15,7 +15,7 @@ public readonly record struct Go(
     uint? Mate,
     uint? MoveTime,
     bool Infinite
-) : IUciRequestWithMoves
+) : IUciRequest
 {
     private static T? MapKeyValue<T>(IEnumerable<string> tokens, string key, IFormatProvider? provider = null)
         where T : struct, IParsable<T>

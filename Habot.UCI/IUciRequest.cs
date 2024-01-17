@@ -6,7 +6,7 @@ public interface IUciRequest
 {
 }
 
-public interface IUciRequestWithMoves : IUciRequest
+public interface IUciPositionRequest : IUciRequest
 {
     IEnumerable<Move> Moves { get; }
 }
