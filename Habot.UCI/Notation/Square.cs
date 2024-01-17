@@ -17,9 +17,14 @@ public readonly record struct Square
         Value = row * 8 + column;
     }
 
+    public Square((int row, int column) value)
+    {
+        var (row, column) = value;
+        Value = row * 8 + column;
+    }
+
     private static readonly Dictionary<char, int> FilesDictionary = new()
         { ['a'] = 0, ['b'] = 1, ['c'] = 2, ['d'] = 3, ['e'] = 4, ['f'] = 5, ['g'] = 6, ['h'] = 7 };
-
 
     public static Square Serialize(string str)
     {
