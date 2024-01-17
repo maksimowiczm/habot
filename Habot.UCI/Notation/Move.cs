@@ -28,7 +28,7 @@ public readonly record struct Move(Square From, Square To, char? Promotion)
 
     public bool MightBeCastle()
     {
-        var castlePairs = new List<(byte, byte)> { (4, 2), (4, 6), (60, 58), (60, 62) };
+        var castlePairs = new List<(int, int)> { (4, 2), (4, 6), (60, 58), (60, 62) };
 
         var thisClone = this;
         return castlePairs

@@ -38,7 +38,7 @@ public class Board : IMailboxBoard, IBoard
 
         foreach (var (row, col, piece) in IMailboxBoard.PiecesFromFen(fen))
         {
-            var flatSquare = new Square((byte)row, (byte)col).Value;
+            var flatSquare = new Square(row, col).Value;
             Pieces[flatSquare] = piece;
         }
 
@@ -53,7 +53,7 @@ public class Board : IMailboxBoard, IBoard
         EnPassant = options[2] == "-" ? null : Square.Serialize(options[2]);
     }
 
-    private bool TryCastle(byte from, byte to, Piece fromPiece)
+    private bool TryCastle(int from, int to, Piece fromPiece)
     {
         if (fromPiece.Type != PieceType.King)
         {
@@ -80,7 +80,7 @@ public class Board : IMailboxBoard, IBoard
         }
     }
 
-    private bool TryEnPassant(byte from, byte to, Piece fromPiece)
+    private bool TryEnPassant(int from, int to, Piece fromPiece)
     {
         if (
             fromPiece.Type != PieceType.Pawn ||
@@ -146,7 +146,7 @@ public class Board : IMailboxBoard, IBoard
         {
             for (var j = 0; j < 8; j++)
             {
-                var square = new Square((byte)i, (byte)j);
+                var square = new Square(i, j);
                 var piece = Pieces[square.Value];
                 if (piece is not null)
                 {

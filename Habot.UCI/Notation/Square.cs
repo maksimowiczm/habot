@@ -4,30 +4,20 @@ namespace Habot.UCI.Notation;
 
 public readonly record struct Square
 {
-    public byte Value { get; }
-    public (byte row, byte column) Position => ((byte row, byte column))(Value / 8, Value % 8);
+    public int Value { get; }
+    public (int row, int column) Position => (Value / 8, Value % 8);
 
-    public Square(byte value)
+    public Square(int value)
     {
         Value = value;
     }
 
-    public Square(int value)
-    {
-        Value = (byte)(value);
-    }
-
-    public Square(byte row, byte column)
-    {
-        Value = (byte)(row * 8 + column);
-    }
-
     public Square(int row, int column)
     {
-        Value = (byte)(row * 8 + column);
+        Value = row * 8 + column;
     }
 
-    private static readonly Dictionary<char, byte> FilesDictionary = new()
+    private static readonly Dictionary<char, int> FilesDictionary = new()
         { ['a'] = 0, ['b'] = 1, ['c'] = 2, ['d'] = 3, ['e'] = 4, ['f'] = 5, ['g'] = 6, ['h'] = 7 };
 
 
@@ -52,10 +42,10 @@ public readonly record struct Square
             throw new SerializationException($"""Cannot serialize "{str}" as chess square.""");
         }
 
-        return new Square((byte)digit, col);
+        return new Square(digit, col);
     }
 
-    private static readonly Dictionary<byte, char> ReversedFilesDictionary =
+    private static readonly Dictionary<int, char> ReversedFilesDictionary =
         FilesDictionary.ToDictionary(x => x.Value, x => x.Key);
 
     public override string ToString() => $"{ReversedFilesDictionary[Position.column]}{Position.row + 1}";
