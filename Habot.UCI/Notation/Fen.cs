@@ -1,4 +1,4 @@
-namespace Habot.Core.Chess;
+namespace Habot.UCI.Notation;
 
 /// <summary>
 /// Represents FEN notation.

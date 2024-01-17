@@ -1,6 +1,6 @@
-using Habot.Core.Chess;
+using Habot.UCI.Notation;
 using Shared;
-using static Habot.Core.Chess.Color;
+using static Habot.UCI.Notation.Color;
 using static Habot.Core.Mailbox.PieceType;
 
 namespace Habot.Core.Mailbox;

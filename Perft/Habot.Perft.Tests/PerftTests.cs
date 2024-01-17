@@ -1,5 +1,5 @@
 using Habot.Core.Board;
-using Habot.Core.Chess;
+using Habot.UCI.Notation;
 using NUnit.Framework;
 
 namespace Habot.Perft.Tests;

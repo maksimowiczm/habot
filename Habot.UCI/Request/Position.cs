@@ -1,5 +1,5 @@
 using System.Runtime.Serialization;
-using Habot.Core.Chess;
+using Habot.UCI.Notation;
 using Shared;
 
 namespace Habot.UCI.Request;

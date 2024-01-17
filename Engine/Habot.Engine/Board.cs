@@ -1,14 +1,15 @@
 using System.Runtime.Serialization;
 using System.Text;
 using Habot.Core.Board;
-using Habot.Core.Chess;
 using Habot.Core.Mailbox;
 using Habot.Perft;
+using Habot.UCI.Notation;
+using Habot.UCI.Request;
 using Shared;
 
 namespace Habot.Engine;
 
-public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICreatableBoard<Board>
+public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICreatableBoard<Board>, IEngine
 {
     private string _castleRights = "KQkq";
     private Color _colorToMove = Color.White;
@@ -190,5 +191,15 @@ public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICrea
         }
 
         return builder.ToString();
+    }
+
+    public IEnumerable<Move> GetLegalMoves()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Move Search(Go request)
+    {
+        throw new NotImplementedException();
     }
 }

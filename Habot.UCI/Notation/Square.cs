@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace Habot.Core.Chess;
+namespace Habot.UCI.Notation;
 
 public readonly record struct Square
 {

@@ -1,4 +1,4 @@
-namespace Habot.Core.Chess;
+namespace Habot.UCI.Notation;
 
 public enum Color
 {

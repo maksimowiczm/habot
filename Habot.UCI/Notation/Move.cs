@@ -1,7 +1,7 @@
 using System.Runtime.Serialization;
 using Shared;
 
-namespace Habot.Core.Chess;
+namespace Habot.UCI.Notation;
 
 public readonly record struct Move(Square From, Square To, char? Promotion)
 {
