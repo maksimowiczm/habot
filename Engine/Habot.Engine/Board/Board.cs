@@ -2,44 +2,40 @@ using System.Runtime.Serialization;
 using System.Text;
 using Habot.Core.Board;
 using Habot.Core.Mailbox;
-using Habot.Perft;
 using Habot.UCI.Notation;
-using Habot.UCI.Request;
 using Shared;
 
-namespace Habot.Engine;
+namespace Habot.Engine.Board;
 
-public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICreatableBoard<Board>, IEngine
+public class Board : IMailboxBoard, IBoard
 {
-    private string _castleRights = "KQkq";
-    private Color _colorToMove = Color.White;
-    private Square? _enPassant;
-    private Piece?[] _pieces = new Piece?[64];
+    protected string CastleRights = "KQkq";
+    public Color ColorToMove { get; private set; } = Color.White;
+    protected Square? EnPassant;
+    protected Piece?[] Pieces = new Piece?[64];
 
-    private Board()
+    protected Board()
     {
     }
 
-    public static Board Create()
+    protected static T PopulateProperties<T>(T board)
+        where T : Board
     {
-        var board = new Board();
-
         foreach (var (key, value) in IMailboxBoard.StartingPositionPiecesMap)
         {
-            board._pieces[key] = value;
+            board.Pieces[key] = value;
         }
 
         return board;
     }
 
-    public static Board Create(Fen fen)
+    protected static T PopulateProperties<T>(T board, Fen fen)
+        where T : Board
     {
-        var board = new Board();
-
         foreach (var (row, col, piece) in IMailboxBoard.PiecesFromFen(fen))
         {
             var flatSquare = new Square((byte)row, (byte)col).Value;
-            board._pieces[flatSquare] = piece;
+            board.Pieces[flatSquare] = piece;
         }
 
         var options = fen.Value.SkipWhile(ch => ch != ' ').Skip(1).CollectString().Split(' ').Take(3).ToList();
@@ -48,9 +44,9 @@ public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICrea
             throw new SerializationException($"""Cannot parse "{fen}" as fen""");
         }
 
-        board._colorToMove = options[0] == "w" ? Color.White : Color.Black;
-        board._castleRights = options[1];
-        board._enPassant = options[2] == "-" ? null : Square.Serialize(options[2]);
+        board.ColorToMove = options[0] == "w" ? Color.White : Color.Black;
+        board.CastleRights = options[1];
+        board.EnPassant = options[2] == "-" ? null : Square.Serialize(options[2]);
 
         return board;
     }
@@ -59,17 +55,17 @@ public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICrea
     {
         foreach (var (key, piece) in IMailboxBoard.StartingPositionPiecesMap)
         {
-            _pieces[key] = piece;
+            Pieces[key] = piece;
         }
     }
 
     public void SetPosition(Fen fen)
     {
-        var fenBoard = Create(fen);
-        _pieces = fenBoard._pieces;
-        _enPassant = fenBoard._enPassant;
-        _castleRights = fenBoard._castleRights;
-        _colorToMove = fenBoard._colorToMove;
+        var fenBoard = PopulateProperties(new Board(), fen);
+        Pieces = fenBoard.Pieces;
+        EnPassant = fenBoard.EnPassant;
+        CastleRights = fenBoard.CastleRights;
+        ColorToMove = fenBoard.ColorToMove;
     }
 
     private bool TryCastle(byte from, byte to, Piece fromPiece)
@@ -82,19 +78,19 @@ public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICrea
         var color = fromPiece.Color;
 
         // move king
-        (_pieces[to], _pieces[from]) = (_pieces[from], _pieces[to]);
+        (Pieces[to], Pieces[from]) = (Pieces[from], Pieces[to]);
 
         // move rook
         if (from < to)
         {
             var rookPosition = color == Color.White ? 7 : 63;
-            (_pieces[from + 1], _pieces[rookPosition]) = (_pieces[rookPosition], _pieces[from + 1]);
+            (Pieces[from + 1], Pieces[rookPosition]) = (Pieces[rookPosition], Pieces[from + 1]);
             return true;
         }
         else // else bcs rookPosition var ;/
         {
             var rookPosition = color == Color.White ? 0 : 56;
-            (_pieces[from - 1], _pieces[rookPosition]) = (_pieces[rookPosition], _pieces[from - 1]);
+            (Pieces[from - 1], Pieces[rookPosition]) = (Pieces[rookPosition], Pieces[from - 1]);
             return true;
         }
     }
@@ -103,16 +99,16 @@ public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICrea
     {
         if (
             fromPiece.Type != PieceType.Pawn ||
-            _enPassant is null || _enPassant.Value.Value != to
+            EnPassant is null || EnPassant.Value.Value != to
         )
         {
             return false;
         }
 
-        _pieces[to] = fromPiece;
-        _pieces[from] = null;
+        Pieces[to] = fromPiece;
+        Pieces[from] = null;
         var diff = fromPiece.Color == Color.White ? -8 : 8;
-        _pieces[_enPassant.Value.Value + diff] = null;
+        Pieces[EnPassant.Value.Value + diff] = null;
         return true;
     }
 
@@ -120,7 +116,7 @@ public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICrea
     {
         var from = move.From;
         var to = move.To;
-        var fromPiece = _pieces[from.Value];
+        var fromPiece = Pieces[from.Value];
         if (fromPiece is null)
         {
             return;
@@ -142,29 +138,19 @@ public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICrea
             var type => new Piece(type.Value.ToPieceType(), fromPiece.Value.Color)
         };
 
-        _pieces[to.Value] = newPiece;
-        _pieces[from.Value] = null;
+        Pieces[to.Value] = newPiece;
+        Pieces[from.Value] = null;
 
         // mark en passant
         if (fromPiece.Value.Type == PieceType.Pawn && Math.Abs(from.Position.row - to.Position.row) == 2)
         {
             var diff = fromPiece.Value.Color == Color.White ? 8 : -8;
-            _enPassant = new Square(from.Value + diff);
+            EnPassant = new Square(from.Value + diff);
         }
         else
         {
-            _enPassant = null;
+            EnPassant = null;
         }
-    }
-
-    public uint PerftQuick(uint depth)
-    {
-        throw new NotImplementedException();
-    }
-
-    public IEnumerable<Move> GetLegalMoves(Color color)
-    {
-        throw new NotImplementedException();
     }
 
     public override string ToString()
@@ -176,7 +162,7 @@ public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICrea
             for (var j = 0; j < 8; j++)
             {
                 var square = new Square((byte)i, (byte)j);
-                var piece = _pieces[square.Value];
+                var piece = Pieces[square.Value];
                 if (piece is not null)
                 {
                     builder.Append(piece.ToString());
@@ -191,15 +177,5 @@ public class Board : IMailboxBoard, IBoard, IPerftQuickBoard, ISmartBoard, ICrea
         }
 
         return builder.ToString();
-    }
-
-    public IEnumerable<Move> GetLegalMoves()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Move Search(Go request)
-    {
-        throw new NotImplementedException();
     }
 }

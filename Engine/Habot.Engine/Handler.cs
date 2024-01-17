@@ -8,13 +8,13 @@ namespace Habot.Engine;
 /// </summary>
 public class Handler : IUciHandler
 {
-    private Board _board = Board.Create();
+    private Board.Engine _board = Board.Engine.Create();
 
     public IUciResponse HelloMessage() => IUciResponse.Okay("Hello habot");
 
     private IUciResponse HandleNewGame()
     {
-        _board = Board.Create();
+        _board = Board.Engine.Create();
         return IUciResponse.Okay();
     }
 
@@ -22,8 +22,8 @@ public class Handler : IUciHandler
     {
         _board = request switch
         {
-            PositionFromFen fromFen => Board.Create(fromFen.Fen),
-            PositionFromStartPos => Board.Create(),
+            PositionFromFen fromFen => Board.Engine.Create(fromFen.Fen),
+            PositionFromStartPos => Board.Engine.Create(),
             _ => _board
         };
 
