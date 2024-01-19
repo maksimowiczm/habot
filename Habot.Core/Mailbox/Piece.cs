@@ -32,7 +32,7 @@ public static class PieceExtensions
     /// <param name="piece">Piece.</param>
     /// <param name="position">Piece on board square.</param>
     /// <returns>Possible moves.</returns>
-    public static IEnumerable<IEnumerable<Move>> GetStupidSlidingMoves(this Piece piece, Square position)
+    public static IEnumerable<IEnumerable<Move>> GetStupidMoves(this Piece piece, Square position)
     {
         return piece.Type switch
         {
@@ -132,8 +132,10 @@ public static class PieceExtensions
             .Select(v => new Square(v))
             .Select(v => v.ToMove(from));
 
-    private static IEnumerable<Move> ToMoves(this IEnumerable<Square> square, Square from) =>
-        square.Select(v => v.ToMove(from));
+    private static IEnumerable<Move> ToMovesInRange(this IEnumerable<Square> square, Square from) =>
+        square
+            .Where(s => SquareInRange(s.Position))
+            .Select(v => v.ToMove(from));
 
     private static IEnumerable<IEnumerable<Move>> GetStupidKnightMoves(Square fromSquare)
     {
@@ -165,20 +167,24 @@ public static class PieceExtensions
         var column = fromSquare.Position.column;
 
         var upperRight = Enumerable.Range(column + 1, 8 - column).Take(range)
+            .Where(v => v is >= 0 and < 8)
             .Select(v => new Square(from + (v - column) * 9))
-            .ToMoves(fromSquare);
+            .ToMovesInRange(fromSquare);
 
         var bottomLeft = Enumerable.Range(1, column).Take(range)
+            .Where(v => v is >= 0 and < 8)
             .Select(v => new Square(from - v * 9))
-            .ToMoves(fromSquare);
+            .ToMovesInRange(fromSquare);
 
         var upperLeft = Enumerable.Range(1, column).Take(range)
+            .Where(v => v is >= 0 and < 8)
             .Select(v => new Square(from + v * 7))
-            .ToMoves(fromSquare);
+            .ToMovesInRange(fromSquare);
 
         var bottomRight = Enumerable.Range(column + 1, 8 - column).Take(range)
+            .Where(v => v is >= 0 and < 8)
             .Select(v => new Square(from - (v - column) * 7))
-            .ToMoves(fromSquare);
+            .ToMovesInRange(fromSquare);
 
         return new List<IEnumerable<Move>> { upperRight, bottomRight, bottomLeft, upperLeft };
     }
@@ -195,11 +201,11 @@ public static class PieceExtensions
             .Select(v => (row, v))
             .ToMovesInRange(fromSquare);
 
-        var up = Enumerable.Range(column + 1, 8 - column).Take(range)
+        var up = Enumerable.Range(row + 1, 8 - column).Take(range)
             .Select(v => (v, column))
             .ToMovesInRange(fromSquare);
 
-        var down = Enumerable.Range(0, column).Reverse().Take(range)
+        var down = Enumerable.Range(0, row).Reverse().Take(range)
             .Select(v => (v, column))
             .ToMovesInRange(fromSquare);
 
