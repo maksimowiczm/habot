@@ -109,11 +109,13 @@ public class Board : IMailboxBoard, IBoard
 
         if (move.MightBeCastle() && TryCastle(from.Value, to.Value, fromPiece.Value))
         {
+            EnPassant = null;
             return;
         }
 
         if (TryEnPassant(from.Value, to.Value, fromPiece.Value))
         {
+            EnPassant = null;
             return;
         }
 

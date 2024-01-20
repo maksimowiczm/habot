@@ -201,7 +201,7 @@ public static class PieceExtensions
             .Select(v => (row, v))
             .ToMovesInRange(fromSquare);
 
-        var up = Enumerable.Range(row + 1, 8 - column).Take(range)
+        var up = Enumerable.Range(row + 1, 8 - row).Take(range)
             .Select(v => (v, column))
             .ToMovesInRange(fromSquare);
 
