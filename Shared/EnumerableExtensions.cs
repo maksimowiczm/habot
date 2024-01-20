@@ -20,4 +20,28 @@ public static class EnumerableExtensions
             }
         }
     }
+
+    public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> enumerable) =>
+        enumerable
+            .Where(elem => elem is not null)
+            .Select(elem => elem!);
+
+    public static IEnumerable<T> IntersectMultiple<T>(this IEnumerable<IEnumerable<T>> enumerable)
+    {
+        if (!enumerable.Any())
+        {
+            return new List<T>();
+        }
+
+        return enumerable
+            .Skip(1)
+            .Aggregate(
+                new HashSet<T>(enumerable.First()),
+                (h, e) =>
+                {
+                    h.IntersectWith(e);
+                    return h;
+                }
+            );
+    }
 }

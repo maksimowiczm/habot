@@ -55,6 +55,58 @@ public readonly record struct Square
 
     public override string ToString() => $"{ReversedFilesDictionary[Position.column]}{Position.row + 1}";
 
+
+    public IEnumerable<IEnumerable<Square>> GetRookLines()
+    {
+        var (row, column) = Position;
+        yield return GetRookLineColumn();
+        yield return GetRookLineRow();
+        yield break;
+
+        IEnumerable<Square> GetRookLineColumn() => Enumerable.Range(0, 8).Select(i => new Square(i, column));
+        IEnumerable<Square> GetRookLineRow() => Enumerable.Range(0, 8).Select(i => new Square(row, i));
+    }
+
+    // 💀
+    public IEnumerable<IEnumerable<Square>> GetDiagonals()
+    {
+        {
+            var startLeftRight = Position;
+            while (startLeftRight.row - 1 >= 0 && startLeftRight.column - 1 >= 0)
+            {
+                startLeftRight.row -= 1;
+                startLeftRight.column -= 1;
+            }
+
+            var leftRight = new List<Square>();
+            while (startLeftRight is { row: < 8, column: < 8 })
+            {
+                leftRight.Add(new Square(startLeftRight.row, startLeftRight.column));
+                startLeftRight.row += 1;
+                startLeftRight.column += 1;
+            }
+
+            yield return leftRight;
+        }
+
+        var startRightLeft = Position;
+        while (startRightLeft.row + 1 < 8 && startRightLeft.column - 1 >= 0)
+        {
+            startRightLeft.row += 1;
+            startRightLeft.column -= 1;
+        }
+
+        var rightLeft = new List<Square>();
+        while (startRightLeft is { row: < 8, column: < 8 })
+        {
+            rightLeft.Add(new Square(startRightLeft.row, startRightLeft.column));
+            startRightLeft.row -= 1;
+            startRightLeft.column += 1;
+        }
+
+        yield return rightLeft;
+    }
+
     public bool IsSameDiagonal(Square other)
     {
         {

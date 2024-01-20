@@ -1,3 +1,4 @@
+using System.Collections;
 using Habot.Core.Board;
 using Habot.Core.Mailbox;
 using Habot.UCI.Notation;
@@ -16,10 +17,19 @@ public class SmartBoard : Board, ISmartBoard
 
         // Remove illegal king moves
         var kingPosition = GetKingPosition(color);
-        var attackedSquare = GetAttackedSquares(color.Toggle()).ToList();
+        var attackedSquares = GetAttackedSquares(color.Toggle()).ToList();
+
+        // if king is attacked
+        if (attackedSquares.Any(s => s == kingPosition))
+        {
+            pseudoMoves = pseudoMoves.ToList();
+            var kingMoves = GetKingSafeMoves(color, kingPosition, pseudoMoves, attackedSquares);
+            var protectionMoves = GetKingProtectionMoves(color, kingPosition, pseudoMoves);
+            return kingMoves.Union(protectionMoves);
+        }
 
         pseudoMoves = pseudoMoves
-            .Where(m => m.From != kingPosition || attackedSquare.All(a => a != m.To))
+            .Where(m => m.From != kingPosition || attackedSquares.All(a => a != m.To))
             .ToList();
 
         // Remove illegal moves with pinned pieces
@@ -64,6 +74,107 @@ public class SmartBoard : Board, ISmartBoard
         return pseudoMoves;
     }
 
+    private IEnumerable<Move> GetKingSafeMoves(
+        Color color,
+        Square kingPosition,
+        IEnumerable<Move> pseudoMoves,
+        IEnumerable<Square> attackedSquares)
+    {
+        color = color.Toggle();
+
+        var enemies = Pieces
+            .Select((piece, position) => (piece, position))
+            .Where(p => p.piece is not null && p.piece.Value.Color == color);
+
+        var xrayLines = enemies
+            .Select(p =>
+            {
+                var (piece, position) = p;
+
+                if (piece!.Value.Type is PieceType.Bishop or PieceType.Queen)
+                {
+                    var diagonal = new Square(position).GetDiagonals();
+                    var line = diagonal.FirstOrDefault(l => l.Any(s => s == kingPosition));
+                    if (line is null)
+                    {
+                        return line;
+                    }
+
+                    var list = line.ToList();
+                    list.Remove(new Square(position));
+
+                    if (piece!.Value.Type is PieceType.Bishop)
+                    {
+                        return list;
+                    }
+                }
+
+                if (piece!.Value.Type is PieceType.Rook or PieceType.Queen)
+                {
+                    var lines = new Square(position).GetRookLines();
+                    var line = lines.FirstOrDefault(l => l.Any(s => s == kingPosition));
+                    if (line is null)
+                    {
+                        return line;
+                    }
+
+                    var list = line.ToList();
+                    list.Remove(new Square(position));
+                    return list;
+                }
+
+                return null;
+            })
+            .WhereNotNull()
+            .Flatten()
+            .ToList();
+
+        var kingMoves = pseudoMoves
+            .Where(m => m.From == kingPosition && xrayLines.All(s => s != m.To) && attackedSquares.All(s => s != m.To))
+            .ToList();
+
+        return kingMoves;
+    }
+
+    private IEnumerable<Move> GetKingProtectionMoves(Color color, Square kingPosition, IEnumerable<Move> pseudoMoves)
+    {
+        color = color.Toggle();
+
+        var enemies = Pieces
+            .Select((piece, position) => (piece, position))
+            .Where(p => p.piece is not null && p.piece.Value.Color == color);
+
+        var attackedSquares = enemies
+            .Select(p =>
+            {
+                var (piece, position) = p;
+                if (piece!.Value.Type == PieceType.Knight)
+                {
+                    return null;
+                }
+
+                var attackedSquares = GetAttackedSquares(piece!.Value, position, color).ToList();
+
+                var line = attackedSquares.FirstOrDefault(line => line.Any(s => s == kingPosition));
+
+                if (line is null)
+                {
+                    return null;
+                }
+
+                var listLine = line.ToList();
+                listLine.Add(new Square(position));
+                return listLine;
+            })
+            .WhereNotNull()
+            .IntersectMultiple()
+            .Where(s => s != kingPosition);
+
+        var legalMoves = pseudoMoves.Where(m => m.From != kingPosition && attackedSquares.Any(s => s == m.To));
+
+        return legalMoves;
+    }
+
     private IEnumerable<Move> GetPseudoMoves(Color color)
     {
         var pieces = Pieces
@@ -80,7 +191,12 @@ public class SmartBoard : Board, ISmartBoard
                     {
                         var forward = moves.First().TakeWhile(m => Pieces[m.To.Value] is null);
                         var enPassant = moves.Last().Where(m => m.To == EnPassant);
-                        return forward.Union(enPassant);
+                        var capture = moves.Last()
+                            .Where(m =>
+                                Pieces[m.To.Value] is not null &&
+                                Pieces[m.To.Value]!.Value.Color != p.piece.Value.Color
+                            );
+                        return forward.Union(enPassant).Union(capture);
                     }
 
                     var legal = moves
@@ -208,17 +324,16 @@ public class SmartBoard : Board, ISmartBoard
     {
         var attacked = PieceExtensions
             .GetStupidPawnMoves(color, new Square(position))
-            .Last()
-            .Where(m => IsPseudoLegal(m, color));
+            .Last();
 
         return attacked.Select(m => m.To);
     }
 
-    private IEnumerable<Square> GetAttackedSquares(Piece piece, int position, Color color)
+    private IEnumerable<IEnumerable<Square>> GetAttackedSquares(Piece piece, int position, Color color)
     {
         if (piece.Type is PieceType.Pawn)
         {
-            return GetAttackedByPawn(position, color);
+            return new List<IEnumerable<Square>> { GetAttackedByPawn(position, color) };
         }
 
         var moves = piece.Type switch
@@ -228,26 +343,17 @@ public class SmartBoard : Board, ISmartBoard
         };
 
         var attacked = moves
-            .SelectMany(line =>
+            .Select(line =>
             {
                 if (piece.Type == PieceType.Knight)
                 {
-                    return line.Where(m => IsPseudoLegal(m, color));
+                    return line;
                 }
 
-                var scanner = line.TakeWhile(m => IsPseudoLegal(m, color)).ToList();
-
-                // if capture then stop at capture
-                if (scanner.Any(m =>
-                        Pieces[m.To.Value] is not null && Pieces[m.To.Value]!.Value.Color != color))
-                {
-                    return scanner.TakeWhileInclusive(m => Pieces[m.To.Value] is null);
-                }
-
-                return scanner;
+                return line.TakeWhileInclusive(m => Pieces[m.To.Value] is null);
             });
 
-        return attacked.Select(m => m.To).Distinct();
+        return attacked.Select(line => line.Select(m => m.To)).Distinct();
     }
 
     private IEnumerable<Square> GetAttackedSquares(Color color)
@@ -258,6 +364,7 @@ public class SmartBoard : Board, ISmartBoard
 
         var attackedSquares = pieces
             .Select(p => GetAttackedSquares(p.piece!.Value, p.position, color))
+            .Flatten()
             .Flatten()
             .Distinct();
 
