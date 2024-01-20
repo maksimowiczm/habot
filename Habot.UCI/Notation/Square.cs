@@ -54,4 +54,47 @@ public readonly record struct Square
         FilesDictionary.ToDictionary(x => x.Value, x => x.Key);
 
     public override string ToString() => $"{ReversedFilesDictionary[Position.column]}{Position.row + 1}";
+
+    public bool IsSameDiagonal(Square other)
+    {
+        {
+            var startLeftRight = Position;
+            while (startLeftRight.row - 1 >= 0 && startLeftRight.column - 1 >= 0)
+            {
+                startLeftRight.row -= 1;
+                startLeftRight.column -= 1;
+            }
+
+            while (startLeftRight is { row: < 8, column: < 8 })
+            {
+                if (other.Position == startLeftRight)
+                {
+                    return true;
+                }
+
+                startLeftRight.row += 1;
+                startLeftRight.column += 1;
+            }
+        }
+
+        var startRightLeft = Position;
+        while (startRightLeft.row + 1 < 8 && startRightLeft.column - 1 >= 0)
+        {
+            startRightLeft.row += 1;
+            startRightLeft.column -= 1;
+        }
+
+        while (startRightLeft is { row: > 0, column: < 8 })
+        {
+            if (other.Position == startRightLeft)
+            {
+                return true;
+            }
+
+            startRightLeft.row -= 1;
+            startRightLeft.column += 1;
+        }
+
+        return false;
+    }
 }
