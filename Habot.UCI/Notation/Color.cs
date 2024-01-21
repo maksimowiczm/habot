@@ -15,4 +15,11 @@ public static class ColorExtensions
             Color.Black => Color.White,
             _ => throw new ArgumentOutOfRangeException(nameof(color), color, null)
         };
+
+    public static string ToFen(this Color color) => color switch
+    {
+        Color.White => "w",
+        Color.Black => "b",
+        _ => throw new ArgumentOutOfRangeException(nameof(color), color, null)
+    };
 }

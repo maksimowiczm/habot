@@ -1,3 +1,4 @@
+using System.Text;
 using Habot.UCI.Notation;
 using Shared;
 using static Habot.UCI.Notation.Color;
@@ -83,5 +84,49 @@ public interface IMailboxBoard
             .ToList();
 
         return piecesCoordinates;
+    }
+
+    public static string PiecesToFen(Piece?[] pieces)
+    {
+        pieces = pieces.Reverse().ToArray();
+
+        var fen = new StringBuilder();
+
+        for (var i = 0; i < 8; i++)
+        {
+            var gap = 0;
+
+            for (var j = 7; j >= 0; j--)
+            {
+                var piece = pieces[8 * i + j];
+                if (piece is null)
+                {
+                    gap++;
+                    continue;
+                }
+
+                if (gap > 0)
+                {
+                    fen.Append($"{gap}{piece}");
+                    gap = 0;
+                }
+                else
+                {
+                    fen.Append(piece.ToString());
+                }
+            }
+
+            if (gap != 0)
+            {
+                fen.Append(gap);
+            }
+
+            if (i != 7)
+            {
+                fen.Append('/');
+            }
+        }
+
+        return fen.ToString();
     }
 }

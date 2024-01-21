@@ -7,12 +7,14 @@ using Shared;
 
 namespace Habot.Engine.Board;
 
-public class Board : IMailboxBoard, IBoard
+public class Board : IMailboxBoard, IBoard, IFenBoard
 {
-    protected string CastleRights = "";
-    public Color ColorToMove { get; protected set; } = Color.White;
-    protected Square? EnPassant;
-    protected Piece?[] Pieces = new Piece?[64];
+    protected internal string CastleRights = "";
+    protected internal Color ColorToMove { get; set; } = Color.White;
+    protected internal Square? EnPassant;
+    protected internal Piece?[] Pieces = new Piece?[64];
+    protected internal int HalfMovesClock { get; set; }
+    protected internal int FullMoveClock { get; set; } = 1;
 
     private void Clear()
     {
@@ -23,6 +25,8 @@ public class Board : IMailboxBoard, IBoard
 
         EnPassant = null;
         CastleRights = "";
+        HalfMovesClock = 0;
+        FullMoveClock = 1;
     }
 
     public void SetStartingPosition()
@@ -47,8 +51,8 @@ public class Board : IMailboxBoard, IBoard
             Pieces[flatSquare] = piece;
         }
 
-        var options = fen.Value.SkipWhile(ch => ch != ' ').Skip(1).CollectString().Split(' ').Take(3).ToList();
-        if (options.Count != 3)
+        var options = fen.Value.SkipWhile(ch => ch != ' ').Skip(1).CollectString().Split(' ').Take(5).ToList();
+        if (options.Count < 3)
         {
             throw new SerializationException($"""Cannot parse "{fen}" as fen""");
         }
@@ -56,6 +60,17 @@ public class Board : IMailboxBoard, IBoard
         ColorToMove = options[0] == "w" ? Color.White : Color.Black;
         CastleRights = options[1];
         EnPassant = options[2] == "-" ? null : Square.Serialize(options[2]);
+
+        if (options.Count == 5)
+        {
+            HalfMovesClock = int.Parse(options[3]);
+            FullMoveClock = int.Parse(options[4]);
+        }
+        else
+        {
+            HalfMovesClock = 0;
+            FullMoveClock = 1;
+        }
     }
 
     private bool TryCastle(int from, int to, Piece fromPiece)
@@ -118,6 +133,20 @@ public class Board : IMailboxBoard, IBoard
             return;
         }
 
+        if (fromPiece.Value.Type is PieceType.Pawn)
+        {
+            HalfMovesClock = 0;
+        }
+        else
+        {
+            HalfMovesClock++;
+        }
+
+        if (ColorToMove == Color.Black)
+        {
+            FullMoveClock++;
+        }
+
         if (move.MightBeCastle() && TryCastle(from.Value, to.Value, fromPiece.Value))
         {
             NextMove();
@@ -176,5 +205,17 @@ public class Board : IMailboxBoard, IBoard
         }
 
         return builder.ToString();
+    }
+
+    public Fen ToFen()
+    {
+        var fen = new StringBuilder();
+        fen.Append(IMailboxBoard.PiecesToFen(Pieces));
+        fen.Append($" {ColorToMove.ToFen()}");
+        fen.Append($" {CastleRights}");
+        fen.Append($" {EnPassant.EnPassantToFen()}");
+        fen.Append($" {HalfMovesClock}");
+        fen.Append($" {FullMoveClock}");
+        return new Fen(fen.ToString());
     }
 }

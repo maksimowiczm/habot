@@ -150,3 +150,12 @@ public readonly record struct Square
         return false;
     }
 }
+
+public static class SquareExtensions
+{
+    public static string EnPassantToFen(this Square? square) => square switch
+    {
+        null => "-",
+        _ => square!.ToString()!
+    };
+}
