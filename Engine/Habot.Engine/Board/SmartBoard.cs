@@ -1,4 +1,3 @@
-using System.Collections;
 using Habot.Core.Board;
 using Habot.Core.Mailbox;
 using Habot.UCI.Notation;
@@ -6,13 +5,15 @@ using Shared;
 
 namespace Habot.Engine.Board;
 
-public class SmartBoard : Board, ISmartBoard
+public class SmartBoard : MementoBoard, ISmartBoard
 {
     /// <summary>
     /// Works only if position is legal.
     /// </summary>
-    public IEnumerable<Move> GetLegalMoves(Color color)
+    public IEnumerable<Move> GetLegalMoves()
     {
+        var color = ColorToMove;
+
         var pseudoMoves = GetPseudoMoves(color);
 
         // Remove illegal king moves
@@ -170,9 +171,28 @@ public class SmartBoard : Board, ISmartBoard
             .IntersectMultiple()
             .Where(s => s != kingPosition);
 
-        var legalMoves = pseudoMoves.Where(m => m.From != kingPosition && attackedSquares.Any(s => s == m.To));
+        var pinnedPieces = GetPins(color.Toggle());
+
+        var legalMoves = pseudoMoves
+            .Where(m =>
+                m.From != kingPosition &&
+                attackedSquares.Any(s => s == m.To) &&
+                pinnedPieces.All(pin => pin.Pinned != m.From)
+            );
 
         return legalMoves;
+    }
+
+    /// <summary>
+    /// Validate if given move is valid. Makes move and validates board. Really slow. 
+    /// </summary>
+    private bool ValidMove(Move move)
+    {
+        Move(move);
+        var king = GetKingPosition(ColorToMove.Toggle());
+        var attacked = GetAttackedSquares(ColorToMove).ToList();
+        Restore();
+        return attacked.All(s => s != king);
     }
 
     private IEnumerable<Move> GetPseudoMoves(Color color)
@@ -190,7 +210,7 @@ public class SmartBoard : Board, ISmartBoard
                     if (p.piece.Value.Type == PieceType.Pawn)
                     {
                         var forward = moves.First().TakeWhile(m => Pieces[m.To.Value] is null);
-                        var enPassant = moves.Last().Where(m => m.To == EnPassant);
+                        var enPassant = moves.Last().Where(m => m.To == EnPassant && ValidMove(m));
                         var capture = moves.Last()
                             .Where(m =>
                                 Pieces[m.To.Value] is not null &&
@@ -329,6 +349,9 @@ public class SmartBoard : Board, ISmartBoard
         return attacked.Select(m => m.To);
     }
 
+    /// <summary>
+    /// Get attacked squares by piece
+    /// </summary>
     private IEnumerable<IEnumerable<Square>> GetAttackedSquares(Piece piece, int position, Color color)
     {
         if (piece.Type is PieceType.Pawn)
@@ -356,6 +379,9 @@ public class SmartBoard : Board, ISmartBoard
         return attacked.Select(line => line.Select(m => m.To)).Distinct();
     }
 
+    /// <summary>
+    /// Get all attacked squares by piece
+    /// </summary>
     private IEnumerable<Square> GetAttackedSquares(Color color)
     {
         var pieces = Pieces

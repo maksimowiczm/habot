@@ -3,14 +3,14 @@ using Habot.UCI.Notation;
 
 namespace Habot.Engine.Board;
 
-public class PerftQuickBoard : MementoBoard, IPerftQuickBoard
+public class PerftQuickBoard : SmartBoard, IPerftQuickBoard
 {
     public Fen Fen => ToFen();
 
     public int PerftQuick(int depth)
     {
         var movesCount = 0;
-        var legalMoves = GetLegalMoves(ColorToMove);
+        var legalMoves = GetLegalMoves();
         if (depth == 0)
         {
             return 1;

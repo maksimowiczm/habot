@@ -7,5 +7,5 @@ namespace Habot.Core.Board;
 /// </summary>
 public interface ISmartBoard
 {
-    IEnumerable<Move> GetLegalMoves(Color color);
+    IEnumerable<Move> GetLegalMoves();
 }

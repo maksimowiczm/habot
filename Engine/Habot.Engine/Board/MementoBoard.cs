@@ -5,7 +5,7 @@ using Habot.UCI.Notation;
 
 namespace Habot.Engine.Board;
 
-public class MementoBoard : SmartBoard, IMementoBoard
+public class MementoBoard : Board, IMementoBoard
 {
     public override void Move(Move move)
     {
@@ -28,8 +28,6 @@ public class MementoBoard : SmartBoard, IMementoBoard
         Move BeforeMove
     ) : IFenBoard
     {
-        public Fen Fen => ToFen();
-
         public Fen ToFen()
         {
             var fen = new StringBuilder();
@@ -51,6 +49,8 @@ public class MementoBoard : SmartBoard, IMementoBoard
                 board.FullMoveClock,
                 beforeMove
             );
+
+        public override string ToString() => ToFen().Value;
     }
 
     private readonly Stack<Snapshot> _snapshots = new();
