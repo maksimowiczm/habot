@@ -9,10 +9,10 @@ namespace Habot.Engine.Board;
 
 public class Board : IMailboxBoard, IBoard
 {
-    protected string CastleRights = "KQkq";
-    public Color ColorToMove { get; private set; } = Color.White;
+    protected string CastleRights = "";
+    public Color ColorToMove { get; protected set; } = Color.White;
     protected Square? EnPassant;
-    protected readonly Piece?[] Pieces = new Piece?[64];
+    protected Piece?[] Pieces = new Piece?[64];
 
     private void Clear()
     {
@@ -20,6 +20,9 @@ public class Board : IMailboxBoard, IBoard
         {
             Pieces[index] = null;
         }
+
+        EnPassant = null;
+        CastleRights = "";
     }
 
     public void SetStartingPosition()
@@ -30,6 +33,8 @@ public class Board : IMailboxBoard, IBoard
         {
             Pieces[key] = piece;
         }
+
+        CastleRights = "KQkq";
     }
 
     public void SetPosition(Fen fen)
@@ -97,7 +102,13 @@ public class Board : IMailboxBoard, IBoard
         return true;
     }
 
-    public void Move(Move move)
+    private void NextMove(Square? enPassant = null)
+    {
+        EnPassant = enPassant;
+        ColorToMove = ColorToMove.Toggle();
+    }
+
+    public virtual void Move(Move move)
     {
         var from = move.From;
         var to = move.To;
@@ -109,20 +120,20 @@ public class Board : IMailboxBoard, IBoard
 
         if (move.MightBeCastle() && TryCastle(from.Value, to.Value, fromPiece.Value))
         {
-            EnPassant = null;
+            NextMove();
             return;
         }
 
         if (TryEnPassant(from.Value, to.Value, fromPiece.Value))
         {
-            EnPassant = null;
+            NextMove();
             return;
         }
 
         var newPiece = move.Promotion switch
         {
             null => fromPiece.Value,
-            var type => new Piece(type.Value.ToPieceType(), fromPiece.Value.Color)
+            var type => fromPiece.Value with { Type = type.Value.ToPieceType() }
         };
 
         Pieces[to.Value] = newPiece;
@@ -132,11 +143,12 @@ public class Board : IMailboxBoard, IBoard
         if (fromPiece.Value.Type == PieceType.Pawn && Math.Abs(from.Position.row - to.Position.row) == 2)
         {
             var diff = fromPiece.Value.Color == Color.White ? 8 : -8;
-            EnPassant = new Square(from.Value + diff);
+            var enPassant = new Square(from.Value + diff);
+            NextMove(enPassant);
         }
         else
         {
-            EnPassant = null;
+            NextMove();
         }
     }
 
