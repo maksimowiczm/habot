@@ -15,8 +15,13 @@ public abstract class PerftTests<TBoard, TBuilder>
     {
         var board = new TBuilder().SetFen(fen).Build();
 
-        var moves = board.Perft(depth);
+        var moves = board.Perft(depth).ToList();
         var count = moves.Aggregate(0, (current, m) => current + m.Count);
+
+        foreach (var move in moves)
+        {
+            Console.WriteLine($"{move.Move}: {move.Count}");
+        }
 
         return count;
     }

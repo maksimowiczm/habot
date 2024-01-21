@@ -3,7 +3,7 @@ using Shared;
 
 namespace Habot.UCI.Notation;
 
-public readonly record struct Move(Square From, Square To, char? Promotion)
+public readonly record struct Move(Square From, Square To, char? Promotion = null)
 {
     public static Move Serialize(string str)
     {
