@@ -6,5 +6,5 @@ namespace Habot.Perft;
 /// </summary>
 public interface IPerftBoard
 {
-    IEnumerable<PerftWithMove> Perft(uint depth);
+    IEnumerable<PerftWithMove> Perft(int depth);
 }

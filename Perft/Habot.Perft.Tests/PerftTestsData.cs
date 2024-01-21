@@ -12,12 +12,12 @@ public class PerftTestsData
     {
         get
         {
-            yield return new TestCaseData(StartingPositionFen, 0u).Returns(1u);
-            yield return new TestCaseData(StartingPositionFen, 1u).Returns(20u);
-            yield return new TestCaseData(StartingPositionFen, 2u).Returns(400u);
-            yield return new TestCaseData(StartingPositionFen, 3u).Returns(8_902u);
-            yield return new TestCaseData(StartingPositionFen, 4u).Returns(197_281u);
-            yield return new TestCaseData(StartingPositionFen, 5u).Returns(4_865_609u);
+            yield return new TestCaseData(StartingPositionFen, 0).Returns(1);
+            yield return new TestCaseData(StartingPositionFen, 1).Returns(20);
+            yield return new TestCaseData(StartingPositionFen, 2).Returns(400);
+            yield return new TestCaseData(StartingPositionFen, 3).Returns(8_902);
+            yield return new TestCaseData(StartingPositionFen, 4).Returns(197_281);
+            yield return new TestCaseData(StartingPositionFen, 5).Returns(4_865_609);
         }
     }
 
@@ -31,10 +31,10 @@ public class PerftTestsData
     {
         get
         {
-            yield return new TestCaseData(Position2Fen, 1u).Returns(48u);
-            yield return new TestCaseData(Position2Fen, 2u).Returns(2_039u);
-            yield return new TestCaseData(Position2Fen, 3u).Returns(97_862u);
-            yield return new TestCaseData(Position2Fen, 4u).Returns(4_085_603u);
+            yield return new TestCaseData(Position2Fen, 1).Returns(48);
+            yield return new TestCaseData(Position2Fen, 2).Returns(2_039);
+            yield return new TestCaseData(Position2Fen, 3).Returns(97_862);
+            yield return new TestCaseData(Position2Fen, 4).Returns(4_085_603);
         }
     }
 
@@ -48,12 +48,12 @@ public class PerftTestsData
     {
         get
         {
-            yield return new TestCaseData(Position3Fen, 1u).Returns(14u);
-            yield return new TestCaseData(Position3Fen, 2u).Returns(191u);
-            yield return new TestCaseData(Position3Fen, 3u).Returns(2_812u);
-            yield return new TestCaseData(Position3Fen, 4u).Returns(43_238u);
-            yield return new TestCaseData(Position3Fen, 5u).Returns(674_624u);
-            yield return new TestCaseData(Position3Fen, 6u).Returns(11_030_083u);
+            yield return new TestCaseData(Position3Fen, 1).Returns(14);
+            yield return new TestCaseData(Position3Fen, 2).Returns(191);
+            yield return new TestCaseData(Position3Fen, 3).Returns(2_812);
+            yield return new TestCaseData(Position3Fen, 4).Returns(43_238);
+            yield return new TestCaseData(Position3Fen, 5).Returns(674_624);
+            yield return new TestCaseData(Position3Fen, 6).Returns(11_030_083);
         }
     }
 }

@@ -10,5 +10,5 @@ namespace Habot.Perft;
 /// <param name="Count">Count of legal moves after the move</param>
 public readonly record struct PerftWithMove(
     Move Move,
-    uint Count
+    int Count
 );
