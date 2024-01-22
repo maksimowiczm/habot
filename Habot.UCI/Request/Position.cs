@@ -17,7 +17,7 @@ public readonly record struct Position(
         return tokens switch
         {
             ["position", "moves", ..] => new Position(moves),
-            ["position", "fen", var fen, ..] => new PositionFromFen(new Fen(fen), moves),
+            ["position", "fen", ..] => new PositionFromFen(new Fen(string.Join(" ", tokens.Skip(2).Take(6))), moves),
             ["position", "startpos", ..] => new PositionFromStartPos(moves),
             _ => throw new SerializationException(
                 $"""Cannot serialize "{tokens.CollectString()}" as UCI position command""")

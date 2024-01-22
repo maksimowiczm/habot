@@ -19,6 +19,7 @@ public static class UciSerializer
             ["setoption", "name", var name, "value", var value] => new SetOption(name, value),
             ["position", ..] => Position.Serialize(str),
             ["go", ..] => Go.Serialize(str),
+            ["perft", var depth] => new Perft(int.Parse(depth)),
             _ => throw new SerializationException($"""Unknown command "{str}".""")
         };
     }

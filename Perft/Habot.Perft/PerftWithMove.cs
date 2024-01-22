@@ -11,4 +11,7 @@ namespace Habot.Perft;
 public readonly record struct PerftWithMove(
     Move Move,
     int Count
-);
+)
+{
+    public override string ToString() => $"{Move} {Count}";
+};

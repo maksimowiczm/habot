@@ -42,6 +42,15 @@ public class Handler : IUciHandler
         return IUciResponse.Okay($"bestmove {move}");
     }
 
+    private IUciResponse HandlePerft(UCI.Request.Perft request)
+    {
+        var moves = _board.Perft(request.Depth).ToList();
+        var sum = moves.Select(m => m.Count).Sum();
+        var movesStrings = moves.Select(m => m.ToString()).OrderBy(s => s);
+        var output = string.Join("\n", movesStrings) + $"\n\n{sum}";
+        return IUciResponse.Okay(output);
+    }
+
     public IUciResponse Handle(IUciRequest request) =>
         request switch
         {
@@ -52,6 +61,7 @@ public class Handler : IUciHandler
             Stop => IUciResponse.Okay(),
             IUciPositionRequest uciRequestWithMoves => HandlePosition(uciRequestWithMoves),
             Go go => HandleGo(go),
+            UCI.Request.Perft perft => HandlePerft(perft),
             _ => IUciResponse.UnknownCommand()
         };
 }

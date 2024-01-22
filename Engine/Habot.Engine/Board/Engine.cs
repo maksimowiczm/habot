@@ -4,7 +4,7 @@ using Habot.UCI.Request;
 
 namespace Habot.Engine.Board;
 
-public class Engine : SmartBoard, IEngine
+public class Engine : PerftBoard, IEngine
 {
     public Move Search(Go request)
     {
