@@ -70,74 +70,95 @@ public class SmartBoard : MementoBoard, ISmartBoard
 
         pseudoMoves = pseudoMoves.Where(m => illegalPins.All(illegal => illegal != m)).ToList();
 
-        // todo castling, check moves
+        // todo castling
 
         return pseudoMoves;
     }
 
+    private List<Square>? GetUnsafeSquares(Piece piece, Square position, Square kingPosition)
+    {
+        // consider only sliding pieces
+        if (piece.Type is not (PieceType.Queen or PieceType.Rook or PieceType.Bishop))
+        {
+            return null;
+        }
+
+        var lines = piece.GetStupidMoves(position);
+
+        // get line with king
+        var line = lines
+            .Select(l => l.Select(m => m.To))
+            .FirstOrDefault(l => l.Any(s => s == kingPosition));
+
+        if (line is null)
+        {
+            return null;
+        }
+
+        var attackedLine = line.ToList();
+
+        var attackedSquares = new List<Square>();
+        foreach (var square in attackedLine)
+        {
+            var pieceOnSquare = Pieces[square.Value];
+
+            // skip empty squares
+            if (pieceOnSquare is null)
+            {
+                attackedSquares.Add(square);
+                continue;
+            }
+
+            // if there is piece on attacked square it means that king is hidden behind it so it is not attacked
+            if (square != kingPosition)
+            {
+                return null;
+            }
+
+            // if king is on this square it means that it can not move on this line at all
+            attackedSquares = attackedLine;
+            break;
+        }
+
+        return attackedSquares;
+    }
+
+    /// <summary>
+    /// Get legal king moves after check.
+    /// </summary>
     private IEnumerable<Move> GetKingSafeMoves(
         Color color,
         Square kingPosition,
         IEnumerable<Move> pseudoMoves,
-        IEnumerable<Square> attackedSquares)
+        IEnumerable<Square> attackedSquares
+    )
     {
-        color = color.Toggle();
-
         var enemies = Pieces
             .Select((piece, position) => (piece, position))
-            .Where(p => p.piece is not null && p.piece.Value.Color == color);
+            .Where(p => p.piece is not null && p.piece.Value.Color == color.Toggle())
+            .Select(p => (p.piece!.Value, p.position));
 
-        var xrayLines = enemies
-            .Select(p =>
-            {
-                var (piece, position) = p;
-
-                if (piece!.Value.Type is PieceType.Bishop or PieceType.Queen)
-                {
-                    var diagonal = new Square(position).GetDiagonals();
-                    var line = diagonal.FirstOrDefault(l => l.Any(s => s == kingPosition));
-                    if (line is null)
-                    {
-                        return line;
-                    }
-
-                    var list = line.ToList();
-                    list.Remove(new Square(position));
-
-                    if (piece!.Value.Type is PieceType.Bishop)
-                    {
-                        return list;
-                    }
-                }
-
-                if (piece!.Value.Type is PieceType.Rook or PieceType.Queen)
-                {
-                    var lines = new Square(position).GetRookLines();
-                    var line = lines.FirstOrDefault(l => l.Any(s => s == kingPosition));
-                    if (line is null)
-                    {
-                        return line;
-                    }
-
-                    var list = line.ToList();
-                    list.Remove(new Square(position));
-                    return list;
-                }
-
-                return null;
-            })
+        var unsafeSquares = enemies
+            .Select(p => GetUnsafeSquares(p.Value, new Square(p.position), kingPosition))
             .WhereNotNull()
             .Flatten()
             .ToList();
 
+        // remove illegal king moves
         var kingMoves = pseudoMoves
-            .Where(m => m.From == kingPosition && xrayLines.All(s => s != m.To) && attackedSquares.All(s => s != m.To))
-            .ToList();
+            .Where(m => m.From == kingPosition &&
+                        unsafeSquares.All(s => s != m.To) &&
+                        attackedSquares.All(s => s != m.To)
+            );
 
         return kingMoves;
     }
 
-    private IEnumerable<Move> GetKingProtectionMoves(Color color, Square kingPosition, IEnumerable<Move> pseudoMoves)
+    /// <summary>
+    /// Get moves that can protect king after check.
+    /// </summary>
+    private IEnumerable<Move> GetKingProtectionMoves(Color color, Square kingPosition,
+        IEnumerable<Move> pseudoMoves)
     {
         color = color.Toggle();
 
@@ -149,12 +170,18 @@ public class SmartBoard : MementoBoard, ISmartBoard
             .Select(p =>
             {
                 var (piece, position) = p;
-                if (piece!.Value.Type == PieceType.Knight)
-                {
-                    return null;
-                }
 
                 var attackedSquares = GetAttackedSquares(piece!.Value, position, color).ToList();
+
+                if (piece!.Value.Type == PieceType.Knight)
+                {
+                    if (attackedSquares.First().Any(s => s == kingPosition))
+                    {
+                        return new List<Square> { new(p.position), kingPosition };
+                    }
+
+                    return null;
+                }
 
                 var line = attackedSquares.FirstOrDefault(line => line.Any(s => s == kingPosition));
 
@@ -205,7 +232,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
         var moves = pieces
             .Select(p =>
                 {
-                    var moves = p.piece!.Value.GetStupidMoves(new Square(p.position));
+                    var moves = p.piece!.Value.GetStupidMoves(new Square(p.position)).ToList();
 
                     if (p.piece.Value.Type == PieceType.Pawn)
                     {
