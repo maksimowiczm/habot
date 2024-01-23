@@ -1,5 +1,6 @@
 using System.Runtime.Serialization;
 using System.Text;
+using Habot.Core;
 using Habot.Core.Board;
 using Habot.Core.Mailbox;
 using Habot.UCI.Notation;
@@ -9,7 +10,7 @@ namespace Habot.Engine.Board;
 
 public class Board : IMailboxBoard, IBoard, IFenBoard
 {
-    protected internal string CastleRights = "";
+    protected internal CastleRights CastleRights = CastleRights.Default();
     protected internal Color ColorToMove { get; protected set; } = Color.White;
     protected internal Square? EnPassant;
     protected internal Piece?[] Pieces = new Piece?[64];
@@ -24,7 +25,7 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
         }
 
         EnPassant = null;
-        CastleRights = "";
+        CastleRights = CastleRights.Empty();
         HalfMovesClock = 0;
         FullMoveClock = 1;
     }
@@ -38,7 +39,7 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
             Pieces[key] = piece;
         }
 
-        CastleRights = "KQkq";
+        CastleRights = CastleRights.Default();
     }
 
     public void SetPosition(Fen fen)
@@ -58,7 +59,7 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
         }
 
         ColorToMove = options[0] == "w" ? Color.White : Color.Black;
-        CastleRights = options[1];
+        CastleRights = CastleRights.Serialize(options[1]);
         EnPassant = options[2] == "-" ? null : Square.Serialize(options[2]);
 
         if (options.Count == 5)
@@ -154,8 +155,33 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
 
         if (move.MightBeCastle() && TryCastle(from.Value, to.Value, fromPiece.Value))
         {
+            CastleRights.Invalidate(ColorToMove);
             NextMove();
             return;
+        }
+
+        if (fromPiece.Value.Type is PieceType.King)
+        {
+            CastleRights.Invalidate(ColorToMove);
+        }
+        else if (fromPiece.Value.Type is PieceType.Rook)
+        {
+            if (move.From.Value == 0)
+            {
+                CastleRights.Invalidate(Castle.WhiteQueen);
+            }
+            else if (move.From.Value == 7)
+            {
+                CastleRights.Invalidate(Castle.WhiteKing);
+            }
+            else if (move.From.Value == 56)
+            {
+                CastleRights.Invalidate(Castle.BlackQueen);
+            }
+            else if (move.From.Value == 63)
+            {
+                CastleRights.Invalidate(Castle.BlackKing);
+            }
         }
 
         if (TryEnPassant(from.Value, to.Value, fromPiece.Value))

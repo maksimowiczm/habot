@@ -1,4 +1,5 @@
 using System.Text;
+using Habot.Core;
 using Habot.Core.Board;
 using Habot.Core.Mailbox;
 using Habot.UCI.Notation;
@@ -19,7 +20,7 @@ public class MementoBoard : Board, IMementoBoard
     }
 
     private readonly record struct Snapshot(
-        string CastleRights,
+        CastleRights CastleRights,
         Color ColorToMove,
         Square? EnPassant,
         Piece?[] Pieces,
@@ -41,7 +42,8 @@ public class MementoBoard : Board, IMementoBoard
         }
 
         public static Snapshot FromBoard(Board board, Move beforeMove) =>
-            new(board.CastleRights,
+            new(
+                (CastleRights)board.CastleRights.Clone(),
                 board.ColorToMove,
                 board.EnPassant,
                 (Piece?[])board.Pieces.Clone(),

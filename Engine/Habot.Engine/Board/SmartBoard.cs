@@ -70,9 +70,39 @@ public class SmartBoard : MementoBoard, ISmartBoard
 
         pseudoMoves = pseudoMoves.Where(m => illegalPins.All(illegal => illegal != m)).ToList();
 
-        // todo castling
+        return pseudoMoves.Union(GetCastles(attackedSquares));
+    }
 
-        return pseudoMoves;
+    /// <summary>
+    /// Gets legal castles. Does not check if king is on check.
+    /// </summary>
+    private IEnumerable<Move> GetCastles(IEnumerable<Square> attackedSquares)
+    {
+        // [castle] = ([hasToBeSafe], [hasToBeEmpty])
+        var squareThatHaveToBeSafeToCastle = new Dictionary<Castle, (IEnumerable<int>, IEnumerable<int>)>
+        {
+            [Castle.WhiteKing] = ([5, 6], [5, 6]),
+            [Castle.WhiteQueen] = ([2, 3], [1, 2, 3]),
+            [Castle.BlackKing] = ([61, 62], [61, 62]),
+            [Castle.BlackQueen] = ([58, 59], [57, 58, 59])
+        };
+        var colorCastles = ColorToMove.Castles();
+
+        var possibleCastles =
+            squareThatHaveToBeSafeToCastle
+                .Where(p =>
+                    // match castle colors
+                    colorCastles.Any(c => c == p.Key) &&
+                    // can do this castle
+                    CastleRights.Has(p.Key) &&
+                    // none of the squares is attacked
+                    p.Value.Item1.All(v => attackedSquares.All(s => s != new Square(v))) &&
+                    // none piece between king and rook
+                    p.Value.Item2.All(v => Pieces[v] is null)
+                )
+                .Select(p => p.Key);
+
+        return possibleCastles.Select(c => c.ToMove());
     }
 
     private List<Square>? GetUnsafeSquares(Piece piece, Square position, Square kingPosition)
