@@ -190,6 +190,28 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
             return;
         }
 
+        // invalidate castles on rook capture
+        var toPiece = Pieces[to.Value];
+        if (toPiece?.Type is PieceType.Rook)
+        {
+            if (move.To.Value == 0)
+            {
+                CastleRights.Invalidate(Castle.WhiteQueen);
+            }
+            else if (move.To.Value == 7)
+            {
+                CastleRights.Invalidate(Castle.WhiteKing);
+            }
+            else if (move.To.Value == 56)
+            {
+                CastleRights.Invalidate(Castle.BlackQueen);
+            }
+            else if (move.To.Value == 63)
+            {
+                CastleRights.Invalidate(Castle.BlackKing);
+            }
+        }
+
         var newPiece = move.Promotion switch
         {
             null => fromPiece.Value,
