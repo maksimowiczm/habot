@@ -114,6 +114,27 @@ public static class PieceExtensions
             _ => throw new Exception("This is why does .NET enforce default branch for enums")
         };
         capture.AddRange(allMoves.ToMovesInRange(fromSquare));
+        capture = capture.SelectMany(m =>
+            {
+                var moves = new List<Move>();
+                var (row, column) = m.To.Position;
+
+                // check for promotions
+                if (row is 7 or 0)
+                {
+                    moves.Add(new Square(row, column).ToMove(fromSquare, 'q'));
+                    moves.Add(new Square(row, column).ToMove(fromSquare, 'r'));
+                    moves.Add(new Square(row, column).ToMove(fromSquare, 'n'));
+                    moves.Add(new Square(row, column).ToMove(fromSquare, 'b'));
+                }
+                else
+                {
+                    moves.Add(m);
+                }
+
+                return moves;
+            })
+            .ToList();
 
         return new List<IEnumerable<Move>> { forward, capture };
     }
