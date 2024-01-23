@@ -157,55 +157,80 @@ public class SmartBoard : MementoBoard, ISmartBoard
     /// <summary>
     /// Get moves that can protect king after check.
     /// </summary>
-    private IEnumerable<Move> GetKingProtectionMoves(Color color, Square kingPosition,
+    private List<Move> GetKingProtectionMoves(Color color, Square kingPosition,
         IEnumerable<Move> pseudoMoves)
     {
         color = color.Toggle();
+        pseudoMoves = pseudoMoves.ToList();
 
         var enemies = Pieces
             .Select((piece, position) => (piece, position))
-            .Where(p => p.piece is not null && p.piece.Value.Color == color);
+            .Where(p => p.piece is not null && p.piece.Value.Color == color)
+            .Select(p => (p.piece!.Value, p.position));
 
         var attackedSquares = enemies
-            .Select(p =>
+            .Select<(Piece, int), (Piece, List<Square>)?>(p =>
             {
                 var (piece, position) = p;
-
-                var attackedSquares = GetAttackedSquares(piece!.Value, position, color).ToList();
-
-                if (piece!.Value.Type == PieceType.Knight)
-                {
-                    if (attackedSquares.First().Any(s => s == kingPosition))
-                    {
-                        return new List<Square> { new(p.position), kingPosition };
-                    }
-
-                    return null;
-                }
-
+                var attackedSquares = GetAttackedSquares(piece, position, color).ToList();
                 var line = attackedSquares.FirstOrDefault(line => line.Any(s => s == kingPosition));
-
                 if (line is null)
                 {
                     return null;
                 }
 
+                if (piece.Type == PieceType.Pawn)
+                {
+                    return (piece, new List<Square> { new(position) });
+                }
+
+                if (piece.Type == PieceType.Knight)
+                {
+                    if (attackedSquares.First().Any(s => s == kingPosition))
+                    {
+                        return (piece, new List<Square> { new(position), kingPosition });
+                    }
+
+                    return null;
+                }
+
+
                 var listLine = line.ToList();
                 listLine.Add(new Square(position));
-                return listLine;
+                return (piece, listLine);
             })
             .WhereNotNull()
-            .IntersectMultiple()
-            .Where(s => s != kingPosition);
+            .ToList();
 
         var pinnedPieces = GetPins(color.Toggle());
 
         var legalMoves = pseudoMoves
             .Where(m =>
                 m.From != kingPosition &&
-                attackedSquares.Any(s => s == m.To) &&
+                attackedSquares
+                    .Select(x => x!.Value.Item2)
+                    .IntersectMultiple()
+                    .Where(s => s != kingPosition)
+                    .Any(s => s == m.To) &&
                 pinnedPieces.All(pin => pin.Pinned != m.From)
-            );
+            )
+            .ToList();
+
+        if (EnPassant is null)
+        {
+            return legalMoves;
+        }
+        // add en passant if exists
+
+        var attackerPawn = attackedSquares.SingleOrDefault(x => x!.Value.Item1.Type == PieceType.Pawn);
+        if (attackerPawn is null)
+        {
+            return legalMoves;
+        }
+
+        var pawnMoves = pseudoMoves.Where(m => Pieces[m.From.Value]?.Type is PieceType.Pawn);
+        var enPassants = pawnMoves.Where(m => m.To == EnPassant);
+        legalMoves.AddRange(enPassants);
 
         return legalMoves;
     }
