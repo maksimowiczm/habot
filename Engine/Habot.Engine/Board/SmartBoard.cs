@@ -5,6 +5,7 @@ using Shared;
 
 namespace Habot.Engine.Board;
 
+// todo refactor this evil hell of methods in something fancy :)
 public class SmartBoard : MementoBoard, ISmartBoard
 {
     /// <summary>
@@ -29,13 +30,25 @@ public class SmartBoard : MementoBoard, ISmartBoard
             return kingMoves.Union(protectionMoves);
         }
 
+        // remove illegal king moves
         pseudoMoves = pseudoMoves
             .Where(m => m.From != kingPosition || attackedSquares.All(a => a != m.To))
             .ToList();
 
+        pseudoMoves = RemovePins(pseudoMoves, kingPosition);
+
+        return pseudoMoves.Union(GetCastles(attackedSquares));
+    }
+
+    /// <summary>
+    /// Removes illegal moves of pinned pieces
+    /// </summary>
+    private List<Move> RemovePins(List<Move> pseudoMoves, Square kingPosition)
+    {
         // Remove illegal moves with pinned pieces
-        var pinnedPieces = GetPins(color).ToList();
-        var illegalPins = pseudoMoves
+        var pinnedPieces = GetPins(ColorToMove).ToList();
+        // Enumerable of illegal moves by pinned pieces
+        var illegalMoves = pseudoMoves
             .Join(pinnedPieces,
                 move => move.From,
                 pin => pin.Pinned,
@@ -44,33 +57,23 @@ public class SmartBoard : MementoBoard, ISmartBoard
             .Where(tuple =>
             {
                 var (move, pin) = tuple;
+                var (_, pinner, _) = pin;
+                var (pinnerPiece, pinnerPosition) = pinner;
 
-                // pinned piece can move on the same line as the pinner (pinned by)
-                // rook - the same row or column
-                if (pin.Type == PinType.Rook)
-                {
-                    if (move.From.Position.row == pin.By.Position.row)
-                    {
-                        return move.To.Position.row != move.From.Position.row;
-                    }
+                var line = pinnerPiece
+                    .GetStupidMoves(pinnerPosition)
+                    .Where(l => l.Any(m => m.To == kingPosition))
+                    .Flatten()
+                    .Select(m => m.To)
+                    .SkipLast(1)
+                    .Append(pinnerPosition)
+                    .ToList();
 
-                    return move.To.Position.column != move.From.Position.column;
-                }
-
-                // bishop - move has to be on the same diagonal
-                if (pin.Type == PinType.Bishop)
-                {
-                    return !move.To.IsSameDiagonal(pin.By);
-                }
-
-                return true;
+                return line.All(s => s != move.To);
             })
-            .Select(tuple => tuple.move)
-            .ToList();
+            .Select(tuple => tuple.move);
 
-        pseudoMoves = pseudoMoves.Where(m => illegalPins.All(illegal => illegal != m)).ToList();
-
-        return pseudoMoves.Union(GetCastles(attackedSquares));
+        return pseudoMoves.Where(m => illegalMoves.All(illegal => illegal != m)).ToList();
     }
 
     /// <summary>
@@ -277,7 +280,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
         return attacked.All(s => s != king);
     }
 
-    private IEnumerable<Move> GetPseudoMoves(Color color)
+    private List<Move> GetPseudoMoves(Color color)
     {
         var pieces = Pieces
             .Select((piece, position) => new { piece, position })
@@ -348,7 +351,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
     /// </summary>
     /// <param name="Pinned">Pinned piece.</param>
     /// <param name="By">Piece that pins.</param>
-    private readonly record struct Pin(Square Pinned, Square By, PinType Type);
+    private readonly record struct Pin(Square Pinned, (Piece, Square) By, PinType Type);
 
     private enum PinType
     {
@@ -406,7 +409,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
                         PieceType.Bishop => PinType.Bishop,
                         _ => throw new ArgumentOutOfRangeException(nameof(byWho), byWho, null)
                     };
-                    pins.Add(new Pin(friend.Value, square, type));
+                    pins.Add(new Pin(friend.Value, (piece.Value, square), type));
                 }
 
                 break;
