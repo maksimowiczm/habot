@@ -10,11 +10,11 @@ namespace Habot.Engine.Board;
 public class Board : IMailboxBoard, IBoard, IFenBoard
 {
     protected internal string CastleRights = "";
-    protected internal Color ColorToMove { get; set; } = Color.White;
+    protected internal Color ColorToMove { get; protected set; } = Color.White;
     protected internal Square? EnPassant;
     protected internal Piece?[] Pieces = new Piece?[64];
-    protected internal int HalfMovesClock { get; set; }
-    protected internal int FullMoveClock { get; set; } = 1;
+    protected internal int HalfMovesClock { get; protected set; }
+    protected internal int FullMoveClock { get; protected set; } = 1;
 
     private void Clear()
     {
@@ -63,7 +63,12 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
 
         if (options.Count == 5)
         {
-            HalfMovesClock = int.Parse(options[3]);
+            if (!int.TryParse(options[3], out var halfMoves))
+            {
+                return;
+            }
+
+            HalfMovesClock = halfMoves;
             FullMoveClock = int.Parse(options[4]);
         }
         else
