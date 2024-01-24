@@ -5,7 +5,7 @@ namespace Habot.Core.Board;
 /// <summary>
 /// Represents chess board on which you can move pieces around.
 /// </summary>
-public interface IBoard
+public interface IPlayableBoard
 {
     /// <summary>
     /// Sets starting position.

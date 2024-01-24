@@ -1,4 +1,4 @@
-using Habot.Core.Board;
+using Habot.Core.Engine;
 using Habot.Core.Mailbox;
 using Habot.UCI.Notation;
 using Shared;
@@ -6,7 +6,7 @@ using Shared;
 namespace Habot.Engine.Board;
 
 // todo refactor this evil hell of methods in something fancy :)
-public class SmartBoard : MementoBoard, ISmartBoard
+public class SmartBoard : MementoBoard, IMoveGenerator
 {
     /// <summary>
     /// Works only if position is legal.
@@ -101,7 +101,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
                     // none of the squares is attacked
                     p.Value.Item1.All(v => attackedSquares.All(s => s != new Square(v))) &&
                     // none piece between king and rook
-                    p.Value.Item2.All(v => Pieces[v] is null)
+                    p.Value.Item2.All(v => Board[v] is null)
                 )
                 .Select(p => p.Key);
 
@@ -133,7 +133,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
         var attackedSquares = new List<Square>();
         foreach (var square in attackedLine)
         {
-            var pieceOnSquare = Pieces[square.Value];
+            var pieceOnSquare = Board[square.Value];
 
             // skip empty squares
             if (pieceOnSquare is null)
@@ -166,7 +166,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
         IEnumerable<Square> attackedSquares
     )
     {
-        var enemies = Pieces
+        var enemies = Board
             .Select((piece, position) => (piece, position))
             .Where(p => p.piece is not null && p.piece.Value.Color == color.Toggle())
             .Select(p => (p.piece!.Value, p.position));
@@ -196,7 +196,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
         color = color.Toggle();
         pseudoMoves = pseudoMoves.ToList();
 
-        var enemies = Pieces
+        var enemies = Board
             .Select((piece, position) => (piece, position))
             .Where(p => p.piece is not null && p.piece.Value.Color == color)
             .Select(p => (p.piece!.Value, p.position));
@@ -261,7 +261,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
             return legalMoves;
         }
 
-        var pawnMoves = pseudoMoves.Where(m => Pieces[m.From.Value]?.Type is PieceType.Pawn);
+        var pawnMoves = pseudoMoves.Where(m => Board[m.From.Value]?.Type is PieceType.Pawn);
         var enPassants = pawnMoves.Where(m => m.To == EnPassant);
         legalMoves.AddRange(enPassants);
 
@@ -282,7 +282,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
 
     private List<Move> GetPseudoMoves(Color color)
     {
-        var pieces = Pieces
+        var pieces = Board
             .Select((piece, position) => new { piece, position })
             .Where(p => p.piece is not null && p.piece.Value.Color == color)
             .ToList();
@@ -294,12 +294,12 @@ public class SmartBoard : MementoBoard, ISmartBoard
 
                     if (p.piece.Value.Type == PieceType.Pawn)
                     {
-                        var forward = moves.First().TakeWhile(m => Pieces[m.To.Value] is null);
+                        var forward = moves.First().TakeWhile(m => Board[m.To.Value] is null);
                         var enPassant = moves.Last().Where(m => m.To == EnPassant && ValidMove(m));
                         var capture = moves.Last()
                             .Where(m =>
-                                Pieces[m.To.Value] is not null &&
-                                Pieces[m.To.Value]!.Value.Color != p.piece.Value.Color
+                                Board[m.To.Value] is not null &&
+                                Board[m.To.Value]!.Value.Color != p.piece.Value.Color
                             );
                         return forward.Union(enPassant).Union(capture);
                     }
@@ -316,9 +316,9 @@ public class SmartBoard : MementoBoard, ISmartBoard
 
                             // if capture then stop at capture
                             if (scanner.Any(m =>
-                                    Pieces[m.To.Value] is not null && Pieces[m.To.Value]!.Value.Color != color))
+                                    Board[m.To.Value] is not null && Board[m.To.Value]!.Value.Color != color))
                             {
-                                return scanner.TakeWhileInclusive(m => Pieces[m.To.Value] is null);
+                                return scanner.TakeWhileInclusive(m => Board[m.To.Value] is null);
                             }
 
                             return scanner;
@@ -337,7 +337,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
     private Square GetKingPosition(Color color)
     {
         var kingPosition = new Square(
-            Pieces
+            Board
                 .Select((p, i) => new { p, i })
                 .Single(p => p.p is not null && p.p.Value.Type == PieceType.King && p.p.Value.Color == color)
                 .i
@@ -383,7 +383,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
 
             foreach (var square in line)
             {
-                var piece = Pieces[square.Value];
+                var piece = Board[square.Value];
 
                 // skip empty square
                 if (piece is null)
@@ -421,7 +421,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
 
     private bool IsPseudoLegal(Move move, Color color)
     {
-        var piece = Pieces[move.To.Value];
+        var piece = Board[move.To.Value];
         return piece is null || piece.Value.Color != color;
     }
 
@@ -458,7 +458,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
                     return line;
                 }
 
-                return line.TakeWhileInclusive(m => Pieces[m.To.Value] is null);
+                return line.TakeWhileInclusive(m => Board[m.To.Value] is null);
             });
 
         return attacked.Select(line => line.Select(m => m.To)).Distinct();
@@ -469,7 +469,7 @@ public class SmartBoard : MementoBoard, ISmartBoard
     /// </summary>
     private IEnumerable<Square> GetAttackedSquares(Color color)
     {
-        var pieces = Pieces
+        var pieces = Board
             .Select((piece, position) => new { piece, position })
             .Where(p => p.piece is not null && p.piece.Value.Color == color);
 

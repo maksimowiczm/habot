@@ -4,7 +4,7 @@ using Habot.UCI.Notation;
 namespace Habot.Engine.Board;
 
 public class BoardBuilder<T> : IBoardBuilder<T, BoardBuilder<T>>
-    where T : Board, new()
+    where T : PlayableBoard, new()
 {
     private readonly T _board = new();
 

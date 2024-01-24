@@ -9,28 +9,29 @@ namespace Habot.Engine;
 /// </summary>
 public class Handler : IUciHandler
 {
-    private Board.Engine _board = new BoardBuilder<Board.Engine>().Build();
+    private readonly Engine<SmartBoard, SmartBoard> _engine = new();
+    private PerftBoard _playableBoard = new BoardBuilder<PerftBoard>().Build();
 
     public IUciResponse HelloMessage() => IUciResponse.Okay("Hello habot");
 
     private IUciResponse HandleNewGame()
     {
-        _board = new BoardBuilder<Board.Engine>().Build();
+        _playableBoard = new BoardBuilder<PerftBoard>().Build();
         return IUciResponse.Okay();
     }
 
     private IUciResponse HandlePosition(IUciPositionRequest request)
     {
-        _board = request switch
+        _playableBoard = request switch
         {
-            PositionFromFen fromFen => new BoardBuilder<Board.Engine>().SetFen(fromFen.Fen).Build(),
-            PositionFromStartPos => new BoardBuilder<Board.Engine>().SetStartingPosition().Build(),
-            _ => _board
+            PositionFromFen fromFen => new BoardBuilder<PerftBoard>().SetFen(fromFen.Fen).Build(),
+            PositionFromStartPos => new BoardBuilder<PerftBoard>().SetStartingPosition().Build(),
+            _ => _playableBoard
         };
 
         foreach (var move in request.Moves)
         {
-            _board.Move(move);
+            _playableBoard.Move(move);
         }
 
         return IUciResponse.Okay();
@@ -38,13 +39,13 @@ public class Handler : IUciHandler
 
     private IUciResponse HandleGo(Go request)
     {
-        var move = _board.Search(request);
+        var move = _engine.Search(request, _playableBoard, _playableBoard);
         return IUciResponse.Okay($"bestmove {move}");
     }
 
     private IUciResponse HandlePerft(UCI.Request.Perft request)
     {
-        var moves = _board.Perft(request.Depth).ToList();
+        var moves = _playableBoard.Perft(request.Depth).ToList();
         var sum = moves.Select(m => m.Count).Sum();
         var movesStrings = moves.Select(m => m.ToString()).OrderBy(s => s);
         var output = string.Join("\n", movesStrings) + $"\n\n{sum}";

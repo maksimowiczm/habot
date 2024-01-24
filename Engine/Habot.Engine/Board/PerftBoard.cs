@@ -5,17 +5,15 @@ namespace Habot.Engine.Board;
 
 public class PerftBoard : SmartBoard, IPerftQuickBoard, IPerftBoard
 {
-    public Fen Fen => ToFen();
-
     public int PerftQuick(int depth)
     {
         var movesCount = 0;
-        var legalMoves = GetLegalMoves();
         if (depth == 0)
         {
             return 1;
         }
 
+        var legalMoves = GetLegalMoves();
         if (depth == 1)
         {
             return legalMoves.Count();

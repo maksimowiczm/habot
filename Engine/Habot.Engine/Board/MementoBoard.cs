@@ -6,7 +6,7 @@ using Habot.UCI.Notation;
 
 namespace Habot.Engine.Board;
 
-public class MementoBoard : Board, IMementoBoard
+public class MementoBoard : PlayableBoard, IMementoBoard
 {
     public override void Move(Move move)
     {
@@ -41,14 +41,14 @@ public class MementoBoard : Board, IMementoBoard
             return new Fen(fen.ToString());
         }
 
-        public static Snapshot FromBoard(Board board, Move beforeMove) =>
+        public static Snapshot FromBoard(PlayableBoard playableBoard, Move beforeMove) =>
             new(
-                (CastleRights)board.CastleRights.Clone(),
-                board.ColorToMove,
-                board.EnPassant,
-                (Piece?[])board.Pieces.Clone(),
-                board.HalfMovesClock,
-                board.FullMoveClock,
+                (CastleRights)playableBoard.CastleRights.Clone(),
+                playableBoard.ColorToMove,
+                playableBoard.EnPassant,
+                (Piece?[])playableBoard.Board.Clone(),
+                playableBoard.HalfMovesClock,
+                playableBoard.FullMoveClock,
                 beforeMove
             );
 
@@ -74,7 +74,7 @@ public class MementoBoard : Board, IMementoBoard
         CastleRights = snapshot.CastleRights;
         ColorToMove = snapshot.ColorToMove;
         EnPassant = snapshot.EnPassant;
-        Pieces = snapshot.Pieces;
+        Board = snapshot.Pieces;
         HalfMovesClock = snapshot.HalfMovesClock;
         FullMoveClock = snapshot.FullMoveClock;
     }

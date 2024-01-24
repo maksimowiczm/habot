@@ -2,18 +2,25 @@ using System.Runtime.Serialization;
 using System.Text;
 using Habot.Core;
 using Habot.Core.Board;
+using Habot.Core.Engine;
 using Habot.Core.Mailbox;
 using Habot.UCI.Notation;
 using Shared;
 
 namespace Habot.Engine.Board;
 
-public class Board : IMailboxBoard, IBoard, IFenBoard
+public class PlayableBoard : IMailboxBoard, IPlayableBoard, IFenBoard, IBoard
 {
     protected internal CastleRights CastleRights = CastleRights.Default();
-    protected internal Color ColorToMove { get; protected set; } = Color.White;
+    public Color ColorToMove { get; protected set; } = Color.White;
     protected internal Square? EnPassant;
-    protected internal Piece?[] Pieces = new Piece?[64];
+    protected internal Piece?[] Board = new Piece?[64];
+
+    public IEnumerable<(Square, Piece)> Pieces => Board
+        .Select((piece, square) => (piece, square))
+        .Where(p => p.piece is not null)
+        .Select(p => (new Square(p.square), p.piece!.Value));
+
     protected internal int HalfMovesClock { get; protected set; }
     protected internal int FullMoveClock { get; protected set; } = 1;
 
@@ -21,7 +28,7 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
     {
         foreach (var index in Enumerable.Range(0, 64))
         {
-            Pieces[index] = null;
+            Board[index] = null;
         }
 
         EnPassant = null;
@@ -36,7 +43,7 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
 
         foreach (var (key, piece) in IMailboxBoard.StartingPositionPiecesMap)
         {
-            Pieces[key] = piece;
+            Board[key] = piece;
         }
 
         CastleRights = CastleRights.Default();
@@ -49,7 +56,7 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
         foreach (var (row, col, piece) in IMailboxBoard.PiecesFromFen(fen))
         {
             var flatSquare = new Square(row, col).Value;
-            Pieces[flatSquare] = piece;
+            Board[flatSquare] = piece;
         }
 
         var options = fen.Value.SkipWhile(ch => ch != ' ').Skip(1).CollectString().Split(' ').Take(5).ToList();
@@ -89,19 +96,19 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
         var color = fromPiece.Color;
 
         // move king
-        (Pieces[to], Pieces[from]) = (Pieces[from], Pieces[to]);
+        (Board[to], Board[from]) = (Board[from], Board[to]);
 
         // move rook
         if (from < to)
         {
             var rookPosition = color == Color.White ? 7 : 63;
-            (Pieces[from + 1], Pieces[rookPosition]) = (Pieces[rookPosition], Pieces[from + 1]);
+            (Board[from + 1], Board[rookPosition]) = (Board[rookPosition], Board[from + 1]);
             return true;
         }
         else // else bcs rookPosition var ;/
         {
             var rookPosition = color == Color.White ? 0 : 56;
-            (Pieces[from - 1], Pieces[rookPosition]) = (Pieces[rookPosition], Pieces[from - 1]);
+            (Board[from - 1], Board[rookPosition]) = (Board[rookPosition], Board[from - 1]);
             return true;
         }
     }
@@ -116,10 +123,10 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
             return false;
         }
 
-        Pieces[to] = fromPiece;
-        Pieces[from] = null;
+        Board[to] = fromPiece;
+        Board[from] = null;
         var diff = fromPiece.Color == Color.White ? -8 : 8;
-        Pieces[EnPassant.Value.Value + diff] = null;
+        Board[EnPassant.Value.Value + diff] = null;
         return true;
     }
 
@@ -133,7 +140,7 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
     {
         var from = move.From;
         var to = move.To;
-        var fromPiece = Pieces[from.Value];
+        var fromPiece = Board[from.Value];
         if (fromPiece is null)
         {
             return;
@@ -191,7 +198,7 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
         }
 
         // invalidate castles on rook capture
-        var toPiece = Pieces[to.Value];
+        var toPiece = Board[to.Value];
         if (toPiece?.Type is PieceType.Rook)
         {
             if (move.To.Value == 0)
@@ -218,8 +225,8 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
             var type => fromPiece.Value with { Type = type.Value.ToPieceType() }
         };
 
-        Pieces[to.Value] = newPiece;
-        Pieces[from.Value] = null;
+        Board[to.Value] = newPiece;
+        Board[from.Value] = null;
 
         // mark en passant
         if (fromPiece.Value.Type == PieceType.Pawn && Math.Abs(from.Position.row - to.Position.row) == 2)
@@ -243,7 +250,7 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
             for (var j = 0; j < 8; j++)
             {
                 var square = new Square(i, j);
-                var piece = Pieces[square.Value];
+                var piece = Board[square.Value];
                 if (piece is not null)
                 {
                     builder.Append(piece.ToString());
@@ -263,7 +270,7 @@ public class Board : IMailboxBoard, IBoard, IFenBoard
     public Fen ToFen()
     {
         var fen = new StringBuilder();
-        fen.Append(IMailboxBoard.PiecesToFen(Pieces));
+        fen.Append(IMailboxBoard.PiecesToFen(Board));
         fen.Append($" {ColorToMove.ToFen()}");
         fen.Append($" {CastleRights}");
         fen.Append($" {EnPassant.EnPassantToFen()}");
