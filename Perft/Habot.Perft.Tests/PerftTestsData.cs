@@ -56,4 +56,58 @@ public class PerftTestsData
             yield return new TestCaseData(Position3Fen, 6).Returns(11_030_083);
         }
     }
+
+
+    private static readonly Fen Position4Fen = new("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
+
+    /// <summary>
+    /// https://www.chessprogramming.org/Perft_Results#Position_4
+    /// </summary>
+    public static IEnumerable Position4
+    {
+        get
+        {
+            yield return new TestCaseData(Position4Fen, 1).Returns(6);
+            yield return new TestCaseData(Position4Fen, 2).Returns(264);
+            yield return new TestCaseData(Position4Fen, 3).Returns(9_467);
+            yield return new TestCaseData(Position4Fen, 4).Returns(422_333);
+            yield return new TestCaseData(Position4Fen, 5).Returns(15_833_292);
+            // yield return new TestCaseData(Position4Fen, 6).Returns(706_045_033);
+        }
+    }
+
+    private static readonly Fen Position5Fen = new("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8  ");
+
+    /// <summary>
+    /// https://www.chessprogramming.org/Perft_Results#Position_5
+    /// </summary>
+    public static IEnumerable Position5
+    {
+        get
+        {
+            yield return new TestCaseData(Position5Fen, 1).Returns(44);
+            yield return new TestCaseData(Position5Fen, 2).Returns(1_486);
+            yield return new TestCaseData(Position5Fen, 3).Returns(62_379);
+            yield return new TestCaseData(Position5Fen, 4).Returns(2_103_487);
+            // yield return new TestCaseData(Position5Fen, 5).Returns(89_941_194);
+        }
+    }
+
+    private static readonly Fen Position6Fen =
+        new("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
+
+    /// <summary>
+    /// https://www.chessprogramming.org/Perft_Results#Position_6
+    /// </summary>
+    public static IEnumerable Position6
+    {
+        get
+        {
+            yield return new TestCaseData(Position6Fen, 1).Returns(46);
+            yield return new TestCaseData(Position6Fen, 2).Returns(2_079);
+            yield return new TestCaseData(Position6Fen, 3).Returns(89_890);
+            yield return new TestCaseData(Position6Fen, 4).Returns(3_894_594);
+            // yield return new TestCaseData(Position6Fen, 5).Returns( 164_075_551 );
+        }
+    }
 }

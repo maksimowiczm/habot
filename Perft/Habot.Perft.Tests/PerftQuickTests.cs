@@ -11,6 +11,9 @@ public abstract class PerftQuickTests<TBoard, TBuilder>
     [TestCaseSource(typeof(PerftTestsData), nameof(PerftTestsData.StartingPosition))]
     [TestCaseSource(typeof(PerftTestsData), nameof(PerftTestsData.Position2))]
     [TestCaseSource(typeof(PerftTestsData), nameof(PerftTestsData.Position3))]
+    [TestCaseSource(typeof(PerftTestsData), nameof(PerftTestsData.Position4))]
+    [TestCaseSource(typeof(PerftTestsData), nameof(PerftTestsData.Position5))]
+    [TestCaseSource(typeof(PerftTestsData), nameof(PerftTestsData.Position6))]
     public int PerftBoard(Fen fen, int depth)
     {
         var board = new TBuilder().SetFen(fen).Build();
