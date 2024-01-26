@@ -168,11 +168,11 @@ public class SmartBoard : MementoBoard, IMoveGenerator
     {
         var enemies = Board
             .Select((piece, position) => (piece, position))
-            .Where(p => p.piece is not null && p.piece.Value.Color == color.Toggle())
-            .Select(p => (p.piece!.Value, p.position));
+            .Where(p => p.piece is not null && p.piece.Color == color.Toggle())
+            .Select(p => (p.piece!, p.position));
 
         var unsafeSquares = enemies
-            .Select(p => GetUnsafeSquares(p.Value, new Square(p.position), kingPosition))
+            .Select(p => GetUnsafeSquares(p.Item1, new Square(p.position), kingPosition))
             .WhereNotNull()
             .Flatten()
             .ToList();
@@ -198,8 +198,8 @@ public class SmartBoard : MementoBoard, IMoveGenerator
 
         var enemies = Board
             .Select((piece, position) => (piece, position))
-            .Where(p => p.piece is not null && p.piece.Value.Color == color)
-            .Select(p => (p.piece!.Value, p.position));
+            .Where(p => p.piece is not null && p.piece.Color == color)
+            .Select(p => (p.piece!, p.position));
 
         var attackedSquares = enemies
             .Select<(Piece, int), (Piece, List<Square>)?>(p =>
@@ -284,22 +284,22 @@ public class SmartBoard : MementoBoard, IMoveGenerator
     {
         var pieces = Board
             .Select((piece, position) => new { piece, position })
-            .Where(p => p.piece is not null && p.piece.Value.Color == color)
+            .Where(p => p.piece is not null && p.piece.Color == color)
             .ToList();
 
         var moves = pieces
             .Select(p =>
                 {
-                    var moves = p.piece!.Value.GetStupidMoves(new Square(p.position)).ToList();
+                    var moves = p.piece!.GetStupidMoves(new Square(p.position)).ToList();
 
-                    if (p.piece.Value.Type == PieceType.Pawn)
+                    if (p.piece!.Type == PieceType.Pawn)
                     {
                         var forward = moves.First().TakeWhile(m => Board[m.To.Value] is null);
                         var enPassant = moves.Last().Where(m => m.To == EnPassant && ValidMove(m));
                         var capture = moves.Last()
                             .Where(m =>
                                 Board[m.To.Value] is not null &&
-                                Board[m.To.Value]!.Value.Color != p.piece.Value.Color
+                                Board[m.To.Value]!.Color != p.piece.Color
                             );
                         return forward.Union(enPassant).Union(capture);
                     }
@@ -307,7 +307,7 @@ public class SmartBoard : MementoBoard, IMoveGenerator
                     var legal = moves
                         .Select(line =>
                         {
-                            if (p.piece.Value.Type == PieceType.Knight)
+                            if (p.piece.Type == PieceType.Knight)
                             {
                                 return line.Where(m => IsPseudoLegal(m, color));
                             }
@@ -316,7 +316,7 @@ public class SmartBoard : MementoBoard, IMoveGenerator
 
                             // if capture then stop at capture
                             if (scanner.Any(m =>
-                                    Board[m.To.Value] is not null && Board[m.To.Value]!.Value.Color != color))
+                                    Board[m.To.Value] is not null && Board[m.To.Value]!.Color != color))
                             {
                                 return scanner.TakeWhileInclusive(m => Board[m.To.Value] is null);
                             }
@@ -339,7 +339,7 @@ public class SmartBoard : MementoBoard, IMoveGenerator
         var kingPosition = new Square(
             Board
                 .Select((p, i) => new { p, i })
-                .Single(p => p.p is not null && p.p.Value.Type == PieceType.King && p.p.Value.Color == color)
+                .Single(p => p.p is not null && p.p.Type == PieceType.King && p.p.Color == color)
                 .i
         );
 
@@ -392,15 +392,15 @@ public class SmartBoard : MementoBoard, IMoveGenerator
                 }
 
                 // if piece is first friendly piece mark as friend
-                if (piece.Value.Color == color && friend is null)
+                if (piece.Color == color && friend is null)
                 {
                     friend = square;
                     continue;
                 }
 
                 // if piece enemy rook or queen mark as pinned and exit
-                if (piece.Value.Color != color &&
-                    (piece.Value.Type is PieceType.Queen || piece.Value.Type == byWho) &&
+                if (piece.Color != color &&
+                    (piece.Type is PieceType.Queen || piece.Type == byWho) &&
                     friend is not null)
                 {
                     var type = byWho switch
@@ -409,7 +409,7 @@ public class SmartBoard : MementoBoard, IMoveGenerator
                         PieceType.Bishop => PinType.Bishop,
                         _ => throw new ArgumentOutOfRangeException(nameof(byWho), byWho, null)
                     };
-                    pins.Add(new Pin(friend.Value, (piece.Value, square), type));
+                    pins.Add(new Pin(friend.Value, (piece, square), type));
                 }
 
                 break;
@@ -422,7 +422,7 @@ public class SmartBoard : MementoBoard, IMoveGenerator
     private bool IsPseudoLegal(Move move, Color color)
     {
         var piece = Board[move.To.Value];
-        return piece is null || piece.Value.Color != color;
+        return piece is null || piece.Color != color;
     }
 
     private IEnumerable<Square> GetAttackedByPawn(int position, Color color)
@@ -471,10 +471,10 @@ public class SmartBoard : MementoBoard, IMoveGenerator
     {
         var pieces = Board
             .Select((piece, position) => new { piece, position })
-            .Where(p => p.piece is not null && p.piece.Value.Color == color);
+            .Where(p => p.piece is not null && p.piece.Color == color);
 
         var attackedSquares = pieces
-            .Select(p => GetAttackedSquares(p.piece!.Value, p.position, color))
+            .Select(p => GetAttackedSquares(p.piece!, p.position, color))
             .Flatten()
             .Flatten()
             .Distinct();

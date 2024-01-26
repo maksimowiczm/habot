@@ -2,7 +2,7 @@ using Habot.UCI.Notation;
 
 namespace Habot.Core.Mailbox;
 
-public readonly record struct Piece(PieceType Type, Color Color)
+public record Piece(PieceType Type, Color Color)
 {
     public override string ToString()
     {

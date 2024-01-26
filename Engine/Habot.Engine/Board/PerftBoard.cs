@@ -23,7 +23,7 @@ public class PerftBoard : SmartBoard, IPerftQuickBoard, IPerftBoard
         {
             Move(move);
             movesCount += PerftQuick(depth - 1);
-            Undo();
+            Restore();
         }
 
         return movesCount;
@@ -43,7 +43,7 @@ public class PerftBoard : SmartBoard, IPerftQuickBoard, IPerftBoard
         {
             Move(move);
             var movesCount = PerftQuick(depth - 1);
-            Undo();
+            Restore();
             list.Add(new PerftWithMove(move, movesCount));
         }
 

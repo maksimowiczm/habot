@@ -11,15 +11,15 @@ namespace Habot.Engine.Board;
 
 public class PlayableBoard : IMailboxBoard, IPlayableBoard, IFenBoard, IBoard
 {
-    protected internal CastleRights CastleRights = CastleRights.Default();
+    protected internal CastleRights CastleRights { get; protected set; } = CastleRights.Default();
     public Color ColorToMove { get; protected set; } = Color.White;
-    protected internal Square? EnPassant;
-    protected internal Piece?[] Board = new Piece?[64];
+    protected internal Square? EnPassant { get; protected set; }
+    protected internal Piece?[] Board { get; protected set; } = new Piece?[64];
 
     public IEnumerable<(Square, Piece)> Pieces => Board
         .Select((piece, square) => (piece, square))
         .Where(p => p.piece is not null)
-        .Select(p => (new Square(p.square), p.piece!.Value));
+        .Select(p => (new Square(p.square), p.piece!));
 
     protected internal int HalfMovesClock { get; protected set; }
     protected internal int FullMoveClock { get; protected set; } = 1;
@@ -146,7 +146,7 @@ public class PlayableBoard : IMailboxBoard, IPlayableBoard, IFenBoard, IBoard
             return;
         }
 
-        if (fromPiece.Value.Type is PieceType.Pawn)
+        if (fromPiece.Type is PieceType.Pawn)
         {
             HalfMovesClock = 0;
         }
@@ -160,18 +160,18 @@ public class PlayableBoard : IMailboxBoard, IPlayableBoard, IFenBoard, IBoard
             FullMoveClock++;
         }
 
-        if (move.MightBeCastle() && TryCastle(from.Value, to.Value, fromPiece.Value))
+        if (move.MightBeCastle() && TryCastle(from.Value, to.Value, fromPiece))
         {
             CastleRights.Invalidate(ColorToMove);
             NextMove();
             return;
         }
 
-        if (fromPiece.Value.Type is PieceType.King)
+        if (fromPiece.Type is PieceType.King)
         {
             CastleRights.Invalidate(ColorToMove);
         }
-        else if (fromPiece.Value.Type is PieceType.Rook)
+        else if (fromPiece.Type is PieceType.Rook)
         {
             if (move.From.Value == 0)
             {
@@ -191,7 +191,7 @@ public class PlayableBoard : IMailboxBoard, IPlayableBoard, IFenBoard, IBoard
             }
         }
 
-        if (TryEnPassant(from.Value, to.Value, fromPiece.Value))
+        if (TryEnPassant(from.Value, to.Value, fromPiece))
         {
             NextMove();
             return;
@@ -221,17 +221,17 @@ public class PlayableBoard : IMailboxBoard, IPlayableBoard, IFenBoard, IBoard
 
         var newPiece = move.Promotion switch
         {
-            null => fromPiece.Value,
-            var type => fromPiece.Value with { Type = type.Value.ToPieceType() }
+            null => fromPiece,
+            var type => fromPiece with { Type = type.Value.ToPieceType() }
         };
 
         Board[to.Value] = newPiece;
         Board[from.Value] = null;
 
         // mark en passant
-        if (fromPiece.Value.Type == PieceType.Pawn && Math.Abs(from.Position.row - to.Position.row) == 2)
+        if (fromPiece.Type == PieceType.Pawn && Math.Abs(from.Position.row - to.Position.row) == 2)
         {
-            var diff = fromPiece.Value.Color == Color.White ? 8 : -8;
+            var diff = fromPiece.Color == Color.White ? 8 : -8;
             var enPassant = new Square(from.Value + diff);
             NextMove(enPassant);
         }

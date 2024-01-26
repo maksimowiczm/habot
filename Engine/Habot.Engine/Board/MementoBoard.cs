@@ -14,11 +14,6 @@ public class MementoBoard : PlayableBoard, IMementoBoard
         base.Move(move);
     }
 
-    public void Undo()
-    {
-        Restore();
-    }
-
     private readonly record struct Snapshot(
         CastleRights CastleRights,
         Color ColorToMove,
