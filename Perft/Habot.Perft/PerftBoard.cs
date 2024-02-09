@@ -1,10 +1,14 @@
-using Habot.Perft;
+using Habot.Core.Board;
+using Habot.Core.Engine;
 using Habot.UCI.Notation;
 
-namespace Habot.Engine.Board;
+namespace Habot.Perft;
 
-public class PerftBoard : SmartBoard, IPerftQuickBoard, IPerftBoard
+public class PerftBoard<T>(T board) : IPerftQuickBoard, IPerftBoard
+where T : IMementoBoard, IPlayableBoard, IMoveGenerator
 {
+    private readonly T _board = board;
+
     public int PerftQuick(int depth)
     {
         var movesCount = 0;
@@ -13,7 +17,7 @@ public class PerftBoard : SmartBoard, IPerftQuickBoard, IPerftBoard
             return 1;
         }
 
-        var legalMoves = GetLegalMoves();
+        var legalMoves = _board.GetLegalMoves();
         if (depth == 1)
         {
             return legalMoves.Count();
@@ -21,9 +25,9 @@ public class PerftBoard : SmartBoard, IPerftQuickBoard, IPerftBoard
 
         foreach (var move in legalMoves)
         {
-            Move(move);
+            _board.Move(move);
             movesCount += PerftQuick(depth - 1);
-            Restore();
+            _board.Restore();
         }
 
         return movesCount;
@@ -37,13 +41,13 @@ public class PerftBoard : SmartBoard, IPerftQuickBoard, IPerftBoard
             return new List<PerftWithMove> { new(new Move(new Square(0), new Square(0)), 1) };
         }
 
-        var legalMoves = GetLegalMoves();
+        var legalMoves = _board.GetLegalMoves();
         var list = new List<PerftWithMove>();
         foreach (var move in legalMoves)
         {
-            Move(move);
+            _board.Move(move);
             var movesCount = PerftQuick(depth - 1);
-            Restore();
+            _board.Restore();
             list.Add(new PerftWithMove(move, movesCount));
         }
 

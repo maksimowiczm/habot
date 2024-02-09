@@ -23,6 +23,7 @@ public class Engine<TGenerator, TBoard> : IEngine<TGenerator, TBoard>
             PieceType.Bishop => 3,
             PieceType.Knight => 3,
             PieceType.Pawn => 1,
+            _ => throw new Exception("This is why does .NET enforce default branch for enums")
         };
     }
 

@@ -1,4 +1,5 @@
 using Habot.Engine.Board;
+using Habot.Perft;
 using Habot.UCI;
 using Habot.UCI.Request;
 
@@ -10,13 +11,13 @@ namespace Habot.Engine;
 public class Handler : IUciHandler
 {
     private readonly Engine<SmartBoard, SmartBoard> _engine = new();
-    private PerftBoard _playableBoard = new BoardBuilder<PerftBoard>().Build();
+    private SmartBoard _playableBoard = new BoardBuilder<SmartBoard>().Build();
 
     public IUciResponse HelloMessage() => IUciResponse.Okay("Hello habot");
 
     private IUciResponse HandleNewGame()
     {
-        _playableBoard = new BoardBuilder<PerftBoard>().Build();
+        _playableBoard = new BoardBuilder<SmartBoard>().Build();
         return IUciResponse.Okay();
     }
 
@@ -24,8 +25,8 @@ public class Handler : IUciHandler
     {
         _playableBoard = request switch
         {
-            PositionFromFen fromFen => new BoardBuilder<PerftBoard>().SetFen(fromFen.Fen).Build(),
-            PositionFromStartPos => new BoardBuilder<PerftBoard>().SetStartingPosition().Build(),
+            PositionFromFen fromFen => new BoardBuilder<SmartBoard>().SetFen(fromFen.Fen).Build(),
+            PositionFromStartPos => new BoardBuilder<SmartBoard>().SetStartingPosition().Build(),
             _ => _playableBoard
         };
 
@@ -45,7 +46,8 @@ public class Handler : IUciHandler
 
     private IUciResponse HandlePerft(UCI.Request.Perft request)
     {
-        var moves = _playableBoard.Perft(request.Depth).ToList();
+        var perftBoard = new PerftBoard<SmartBoard>(_playableBoard);
+        var moves = perftBoard.Perft(request.Depth).ToList();
         var sum = moves.Select(m => m.Count).Sum();
         var movesStrings = moves.Select(m => m.ToString()).OrderBy(s => s);
         var output = string.Join("\n", movesStrings) + $"\n\n{sum}";
