@@ -16,13 +16,11 @@ public class PlayableBoard : IMailboxBoard, IPlayableBoard, IFenBoard, IBoard
     protected internal Square? EnPassant { get; protected set; }
     protected internal Piece?[] Board { get; protected set; } = new Piece?[64];
 
-    public IEnumerable<(Square, Piece)> Pieces => Board
-        .Select((piece, square) => (piece, square))
-        .Where(p => p.piece is not null)
-        .Select(p => (new Square(p.square), p.piece!));
+    IEnumerable<Piece?> IBoard.Board => Board;
 
     protected internal int HalfMovesClock { get; protected set; }
     protected internal int FullMoveClock { get; protected set; } = 1;
+
 
     private void Clear()
     {

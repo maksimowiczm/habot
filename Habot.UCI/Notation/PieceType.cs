@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace Habot.Core.Mailbox;
+namespace Habot.UCI.Notation;
 
 public enum PieceType
 {

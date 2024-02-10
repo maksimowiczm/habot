@@ -2,7 +2,7 @@ using System.Text;
 using Habot.UCI.Notation;
 using Shared;
 using static Habot.UCI.Notation.Color;
-using static Habot.Core.Mailbox.PieceType;
+using static Habot.UCI.Notation.PieceType;
 
 namespace Habot.Core.Mailbox;
 

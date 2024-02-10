@@ -1,6 +1,4 @@
-using Habot.UCI.Notation;
-
-namespace Habot.Core.Mailbox;
+namespace Habot.UCI.Notation;
 
 public record Piece(PieceType Type, Color Color)
 {
