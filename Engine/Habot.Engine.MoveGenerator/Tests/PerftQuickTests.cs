@@ -7,11 +7,11 @@ using NUnit.Framework;
 namespace Habot.Engine.MoveGenerator.Tests;
 
 [TestFixture]
-public class PerftQuickTests : PerftQuickTests<PerftBoard<SmartBoard>>
+public class PerftQuickTests : PerftQuickTests<PerftBoard<MementoBoard>>
 {
-    protected override PerftBoard<SmartBoard> CreateBoard(Fen fen)
+    protected override PerftBoard<MementoBoard> CreateBoard(Fen fen)
     {
-        var board = new BoardBuilder<SmartBoard>().SetFen(fen).Build();
-        return new PerftBoard<SmartBoard>(board, board);
+        var board = new BoardBuilder<MementoBoard>().SetFen(fen).Build();
+        return new PerftBoard<MementoBoard>(board, new MoveGenerator());
     }
 }

@@ -11,6 +11,7 @@
     <ProjectReference Include="..\..\Habot.Core\Habot.Core.csproj" />
     <ProjectReference Include="..\..\Perft\Habot.Perft.Tests\Habot.Perft.Tests.csproj" />
     <ProjectReference Include="..\Habot.Engine.Board\Habot.Engine.Board.csproj" />
+    <ProjectReference Include="..\..\Shared\Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

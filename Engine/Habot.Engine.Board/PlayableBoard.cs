@@ -12,10 +12,14 @@ namespace Habot.Engine.Board;
 public class PlayableBoard : IMailboxBoard, IPlayableBoard, IFenBoard, IBoard
 {
     protected internal CastleRights CastleRights { get; protected set; } = CastleRights.Default();
-    public Color ColorToMove { get; protected set; } = Color.White;
-    protected internal Square? EnPassant { get; protected set; }
-    protected internal Piece?[] Board { get; protected set; } = new Piece?[64];
+    CastleRights IBoard.CastleRights => CastleRights;
 
+    public Color ColorToMove { get; protected set; } = Color.White;
+
+    protected internal Square? EnPassant { get; protected set; }
+    Square? IBoard.EnPassant => EnPassant;
+
+    protected internal Piece?[] Board { get; protected set; } = new Piece?[64];
     IEnumerable<Piece?> IBoard.Board => Board;
 
     protected internal int HalfMovesClock { get; protected set; }

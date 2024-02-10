@@ -11,14 +11,4 @@ public class MoveGenerator : IMoveGenerator
         var position = new Position(board);
         return position.GetLegalMoves();
     }
-
-    private class Position(IBoard board)
-    {
-        private readonly IBoard board = board;
-
-        public IEnumerable<Move> GetLegalMoves()
-        {
-            throw new NotImplementedException();
-        }
-    }
 }

@@ -14,5 +14,9 @@ public interface IBoard
         .Where(p => p.piece is not null)
         .Select(p => (new Square(p.square), p.piece!));
 
+    Square? EnPassant { get; }
+
+    CastleRights CastleRights { get; }
+
     Color ColorToMove { get; }
 }

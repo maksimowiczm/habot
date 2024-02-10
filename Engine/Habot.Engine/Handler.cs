@@ -17,7 +17,7 @@ public class Handler : IUciHandler
     public Handler()
     {
         _playableBoard = new BoardBuilder<SmartBoard>().Build();
-        _engine = new Engine { MoveGenerator = _playableBoard };
+        _engine = new Engine { MoveGenerator = new MoveGenerator.MoveGenerator() };
     }
 
     public IUciResponse HelloMessage() => IUciResponse.Okay("Hello habot");
@@ -47,7 +47,7 @@ public class Handler : IUciHandler
 
     private IUciResponse HandleGo(Go request)
     {
-        _engine.MoveGenerator = _playableBoard;
+        // _engine.MoveGenerator = new MoveGenerator.MoveGenerator();
         var move = _engine.Search(request, _playableBoard);
         return IUciResponse.Okay($"bestmove {move}");
     }

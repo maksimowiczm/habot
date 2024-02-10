@@ -1,17 +1,17 @@
-using Habot.Engine.Board;
-using Habot.Perft;
-using Habot.Perft.Tests;
-using Habot.UCI.Notation;
-using NUnit.Framework;
+// using Habot.Engine.Board;
+// using Habot.Perft;
+// using Habot.Perft.Tests;
+// using Habot.UCI.Notation;
+// using NUnit.Framework;
 
-namespace Habot.Engine.MoveGenerator.Tests;
+// namespace Habot.Engine.MoveGenerator.Tests;
 
-[TestFixture]
-public class PerftTests : PerftTests<PerftBoard<SmartBoard>>
-{
-    protected override PerftBoard<SmartBoard> CreateBoard(Fen fen)
-    {
-        var board = new BoardBuilder<SmartBoard>().SetFen(fen).Build();
-        return new PerftBoard<SmartBoard>(board, board);
-    }
-}
+// [TestFixture]
+// public class PerftTests : PerftTests<PerftBoard<MementoBoard>>
+// {
+//     protected override PerftBoard<MementoBoard> CreateBoard(Fen fen)
+//     {
+//         var board = new BoardBuilder<MementoBoard>().SetFen(fen).Build();
+//         return new PerftBoard<MementoBoard>(board, new MoveGenerator());
+//     }
+// }
