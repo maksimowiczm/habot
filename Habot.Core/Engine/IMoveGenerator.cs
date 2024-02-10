@@ -4,5 +4,5 @@ namespace Habot.Core.Engine;
 
 public interface IMoveGenerator
 {
-    IEnumerable<Move> GetLegalMoves();
+    IEnumerable<Move> GetLegalMoves(IBoard board);
 }

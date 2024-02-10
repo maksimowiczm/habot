@@ -12,6 +12,6 @@ public class PerftQuickTests : PerftQuickTests<PerftBoard<SmartBoard>>
     protected override PerftBoard<SmartBoard> CreateBoard(Fen fen)
     {
         var board = new BoardBuilder<SmartBoard>().SetFen(fen).Build();
-        return new PerftBoard<SmartBoard>(board);
+        return new PerftBoard<SmartBoard>(board, board);
     }
 }

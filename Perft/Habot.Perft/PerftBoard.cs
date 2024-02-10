@@ -4,10 +4,11 @@ using Habot.UCI.Notation;
 
 namespace Habot.Perft;
 
-public class PerftBoard<T>(T board) : IPerftQuickBoard, IPerftBoard
-where T : IMementoBoard, IPlayableBoard, IMoveGenerator
+public class PerftBoard<T>(T board, IMoveGenerator moveGenerator) : IPerftQuickBoard, IPerftBoard
+where T : IBoard, IPlayableBoard, IMementoBoard
 {
     private readonly T _board = board;
+    private readonly IMoveGenerator _moveGenerator = moveGenerator;
 
     public int PerftQuick(int depth)
     {
@@ -17,7 +18,7 @@ where T : IMementoBoard, IPlayableBoard, IMoveGenerator
             return 1;
         }
 
-        var legalMoves = _board.GetLegalMoves();
+        var legalMoves = _moveGenerator.GetLegalMoves(_board);
         if (depth == 1)
         {
             return legalMoves.Count();
@@ -38,10 +39,10 @@ where T : IMementoBoard, IPlayableBoard, IMoveGenerator
         // Special case have to return 1
         if (depth == 0)
         {
-            return new List<PerftWithMove> { new(new Move(new Square(0), new Square(0)), 1) };
+            return [new PerftWithMove(new Move(new Square(0), new Square(0)), 1)];
         }
 
-        var legalMoves = _board.GetLegalMoves();
+        var legalMoves = _moveGenerator.GetLegalMoves(_board);
         var list = new List<PerftWithMove>();
         foreach (var move in legalMoves)
         {

@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using Habot.Core.Board;
 using Habot.Core.Engine;
 using Habot.Core.Mailbox;
 using Habot.UCI.Notation;
@@ -7,10 +6,10 @@ using Habot.UCI.Request;
 
 namespace Habot.Engine;
 
-public class Engine<TGenerator, TBoard> : IEngine<TGenerator, TBoard>
-    where TGenerator : IMoveGenerator
-    where TBoard : IBoard, IMementoBoard, IPlayableBoard
+public class Engine : IEngine
 {
+    public required IMoveGenerator MoveGenerator { get; set; }
+
     private static double Value((Square, Piece) item)
     {
         var (square, piece) = item;
@@ -27,7 +26,7 @@ public class Engine<TGenerator, TBoard> : IEngine<TGenerator, TBoard>
         };
     }
 
-    private double Evaluate(TBoard board, Color color)
+    private double Evaluate(IEvaluableBoard board, Color color)
     {
         var pieces = board.Pieces
             .GroupBy(g => g.Item2.Color)
@@ -38,9 +37,9 @@ public class Engine<TGenerator, TBoard> : IEngine<TGenerator, TBoard>
         double evaluate(Color color) => pieces[color].Select(Value).Sum();
     }
 
-    public Move Search(Go request, TGenerator moveGenerator, TBoard board)
+    public Move Search(Go request, IEvaluableBoard board)
     {
-        var legalMoves = moveGenerator.GetLegalMoves().ToList();
+        var legalMoves = MoveGenerator.GetLegalMoves(board).ToList();
 
         var evaluations = legalMoves
             .Select(move =>

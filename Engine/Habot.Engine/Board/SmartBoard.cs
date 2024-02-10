@@ -6,12 +6,12 @@ using Shared;
 namespace Habot.Engine.Board;
 
 // todo refactor this evil hell of methods in something fancy :)
-public class SmartBoard : MementoBoard, IMoveGenerator
+public class SmartBoard : MementoBoard, IMoveGenerator, IEvaluableBoard
 {
     /// <summary>
     /// Works only if position is legal.
     /// </summary>
-    public IEnumerable<Move> GetLegalMoves()
+    public IEnumerable<Move> GetLegalMoves(IBoard board)
     {
         var color = ColorToMove;
 

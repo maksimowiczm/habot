@@ -10,8 +10,14 @@ namespace Habot.Engine;
 /// </summary>
 public class Handler : IUciHandler
 {
-    private readonly Engine<SmartBoard, SmartBoard> _engine = new();
-    private SmartBoard _playableBoard = new BoardBuilder<SmartBoard>().Build();
+    private readonly Engine _engine;
+    private SmartBoard _playableBoard;
+
+    public Handler()
+    {
+        _playableBoard = new BoardBuilder<SmartBoard>().Build();
+        _engine = new Engine { MoveGenerator = _playableBoard };
+    }
 
     public IUciResponse HelloMessage() => IUciResponse.Okay("Hello habot");
 
@@ -40,13 +46,14 @@ public class Handler : IUciHandler
 
     private IUciResponse HandleGo(Go request)
     {
-        var move = _engine.Search(request, _playableBoard, _playableBoard);
+        _engine.MoveGenerator = _playableBoard;
+        var move = _engine.Search(request, _playableBoard);
         return IUciResponse.Okay($"bestmove {move}");
     }
 
     private IUciResponse HandlePerft(UCI.Request.Perft request)
     {
-        var perftBoard = new PerftBoard<SmartBoard>(_playableBoard);
+        var perftBoard = new PerftBoard<SmartBoard>(_playableBoard, _playableBoard);
         var moves = perftBoard.Perft(request.Depth).ToList();
         var sum = moves.Select(m => m.Count).Sum();
         var movesStrings = moves.Select(m => m.ToString()).OrderBy(s => s);
