@@ -1,4 +1,5 @@
 using Habot.Engine.Board;
+using Habot.Engine.MoveGenerator;
 using Habot.Perft;
 using Habot.UCI;
 using Habot.UCI.Request;

@@ -10,15 +10,10 @@
 
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Habot.Core\Habot.Core.csproj"/>
-        <ProjectReference Include="..\..\Habot.Runner\Habot.Runner.csproj"/>
-        <ProjectReference Include="..\..\Perft\Habot.Perft.Tests\Habot.Perft.Tests.csproj"/>
-        <ProjectReference Include="..\..\Perft\Habot.Perft\Habot.Perft.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0"/>
-        <PackageReference Include="NUnit3TestAdapter" Version="4.5.0"/>
+        <ProjectReference Include="..\..\Habot.Core\Habot.Core.csproj" />
+        <ProjectReference Include="..\..\Habot.Runner\Habot.Runner.csproj" />
+        <ProjectReference Include="..\Habot.Engine.Board\Habot.Engine.Board.csproj" />
+        <ProjectReference Include="..\Habot.Engine.MoveGenerator\Habot.Engine.MoveGenerator.csproj" />
     </ItemGroup>
 
 </Project>

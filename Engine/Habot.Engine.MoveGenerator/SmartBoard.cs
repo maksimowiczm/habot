@@ -1,9 +1,10 @@
 using Habot.Core.Engine;
 using Habot.Core.Mailbox;
+using Habot.Engine.Board;
 using Habot.UCI.Notation;
 using Shared;
 
-namespace Habot.Engine.Board;
+namespace Habot.Engine.MoveGenerator;
 
 // todo refactor this evil hell of methods in something fancy :)
 public class SmartBoard : MementoBoard, IMoveGenerator, IEvaluableBoard

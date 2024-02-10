@@ -16,7 +16,7 @@ UCI command are parsed with custom
 ([implementation](./Engine/Habot.Engine/Handler.cs)).
 
 Moves are generated using Mailbox board representation.
-[move generator](./Engine/Habot.Engine/Board/SmartBoard.cs)
+[move generator](./Engine/Habot.Engine.MoveGenerator/SmartBoard.cs)
 
 Board is evaluated with piece-type score.
 [evaluator](./Engine/Habot.Engine/Engine.cs)

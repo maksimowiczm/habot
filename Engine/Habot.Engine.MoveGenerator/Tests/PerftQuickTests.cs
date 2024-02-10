@@ -4,10 +4,10 @@ using Habot.Perft.Tests;
 using Habot.UCI.Notation;
 using NUnit.Framework;
 
-namespace Habot.Engine.Tests;
+namespace Habot.Engine.MoveGenerator.Tests;
 
 [TestFixture]
-public class PerftTests : PerftTests<PerftBoard<SmartBoard>>
+public class PerftQuickTests : PerftQuickTests<PerftBoard<SmartBoard>>
 {
     protected override PerftBoard<SmartBoard> CreateBoard(Fen fen)
     {
